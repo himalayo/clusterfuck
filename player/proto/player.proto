@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package player;
+
+option go_package = "github.com/himalayo/clusterfuck/player/proto";
+
+service Player {
+	rpc LoginPlayer (Ticket) returns (LoginStatus) {}
+}
+
+message Ticket {
+	string sso = 1;
+}
+
+message LoginStatus {
+	bool success = 1;
+}

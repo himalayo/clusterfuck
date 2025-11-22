@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package subscription;
+
+option go_package = "github.com/himalayo/clusterfuck/subscription/proto";
+
+service Subscription {
+	rpc GetSubscripitonsForUser (User) returns (Subscriptions) {}
+	rpc AddDuration (DurationRequest) returns (SubscriptionInstance) {}
+	rpc SetActive (ActivationRequest) returns (SubscriptionInstance) {}
+	rpc UserHasSubscription (SubscriptionRequest) returns (HasSubscriptionResponse) {}
+	rpc UserClubComposer (SubscriptionRequest) returns (Packet) {}
+}
+
+message SubscriptionRequest {
+	int32 user_id = 1;
+	string subscription_type = 2;
+}
+
+message HasSubscriptionResponse {
+	bool has_subscription = 1;
+}
+
+message DurationRequest {
+	int32 subscription_id = 1;
+	int32 duration = 2;
+}
+
+message ActivationRequest {
+	int32 subscription_id = 1;
+	bool active = 2;
+}
+
+message Packet {
+	bytes data = 1;
+}
+
+message User {
+	int32 id = 1;
+	optional string sso = 2;
+}
+
+message Subscriptions {
+	repeated SubscriptionInstance subscriptions = 1;
+}
+
+message SubscriptionInstance {
+	int32 id = 1;
+	int32 user_id = 2;
+	string subscription_type = 3;
+	int32 timestamp_start = 4;
+	int32 duration = 5;
+	bool active = 6;
+}

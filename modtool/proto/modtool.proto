@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package modtool;
+
+option go_package = "github.com/himalayo/clusterfuck/modtool/proto";
+
+service Modtool {
+    rpc GetCfhTopic (TopicId) returns (CfhTopic) {}
+    rpc CfhTopicsMessageComposer (Empty) returns (Packet) {}
+}
+
+
+message Empty {}
+
+message Packet {
+    bytes data = 1;
+}
+
+message TopicId {
+    int32 id = 1;
+}
+
+message IssuePreset {
+    int32 id = 1;
+    string name = 2;
+    string message = 3;
+    string reminder = 4;
+    int32 ban_length = 5;
+    int32 mute_length = 6;
+}
+
+enum CfhActionType {
+    MODS = 0 ;
+    AUTO_REPLY = 1;
+    AUTO_IGNORE = 2;
+    GUARDIANS = 3;
+}
+
+message CfhTopic {
+    int32 id = 1;
+    string name = 2;
+    CfhActionType action = 3;
+    bool ignore_target = 4;
+    string reply = 5;
+    IssuePreset default_sanction = 6;
+    string name_external = 7;
+}

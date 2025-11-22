@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package configuration;
+
+option go_package = "github.com/himalayo/clusterfuck/configuration/proto";
+
+service Configuration {
+    rpc GetBoolean (ConfigurationRequest) returns (BooleanConfiguration) {}
+    rpc GetInt (ConfigurationRequest) returns (IntConfiguration) {}
+    rpc GetDouble (ConfigurationRequest) returns (DoubleConfiguration) {}
+    rpc GetString (ConfigurationRequest) returns (StringConfiguration) {}
+}
+
+message ConfigurationResult {
+    oneof value {
+        BooleanConfiguration boolean_config = 1;
+        IntConfiguration int_config = 2;
+        DoubleConfiguration double_config = 3;
+        StringConfiguration string_config = 4;
+    }
+}
+
+message BooleanConfiguration {
+    bool config = 1;
+}
+
+message IntConfiguration {
+    int32 config = 1;
+}
+
+message DoubleConfiguration {
+    double config = 1;
+}
+
+message StringConfiguration {
+    string config = 1;
+}
+
+message ConfigurationRequest {
+    string key = 1;
+    optional ConfigurationResult default_result = 2;
+}
