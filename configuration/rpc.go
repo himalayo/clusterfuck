@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
+	"strings"
 
 	"database/sql"
 
@@ -103,7 +106,12 @@ func (s *server) GetString(_ context.Context, in *pb.ConfigurationRequest) (*pb.
 }
 
 func StartServer(data *Database) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpc_port))
+	_, portString, _ := strings.Cut(os.Getenv("CONFIGURATION_HOST"), ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *grpc_port
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("Could not start gRPC socket: %v", err)
 	}

@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
+	"strings"
 
 	"google.golang.org/grpc"
 
@@ -79,7 +82,12 @@ func (s *server) GetRankLevel(_ context.Context, in *pb.RankId) (*pb.Level, erro
 }
 
 func StartServer(data *Database) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *serverPort))
+	_, portString, _ := strings.Cut(os.Getenv("PERMISSION_HOST"), ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *serverPort
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

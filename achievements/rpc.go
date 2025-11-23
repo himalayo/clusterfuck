@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
+	"strings"
 
 	pb "github.com/himalayo/clusterfuck/api/achievements/proto"
 	"google.golang.org/grpc"
@@ -37,7 +40,12 @@ func (s *server) InventoryAchievementsComposer(_ context.Context, _ *pb.Empty) (
 }
 
 func StartServer(data *Database) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *serverPort))
+	_, portString, _ := strings.Cut(os.Getenv("ACHIEVEMENTS_HOST"), ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *serverPort
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

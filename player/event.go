@@ -2,24 +2,25 @@ package main
 
 import (
 	"log"
-	pb "github.com/himalayo/clusterfuck/player/proto"
-	networking "github.com/himalayo/clusterfuck/networking/api"
-	subscription "github.com/himalayo/clusterfuck/subscription/api"
-	permission "github.com/himalayo/clusterfuck/permission/api"
-	modtool "github.com/himalayo/clusterfuck/modtool/api"
-	configuration "github.com/himalayo/clusterfuck/configuration/api"
-	achievements "github.com/himalayo/clusterfuck/achievements/api"
+
+	achievements "github.com/himalayo/clusterfuck/api/achievements"
+	configuration "github.com/himalayo/clusterfuck/api/configuration"
+	modtool "github.com/himalayo/clusterfuck/api/modtool"
+	networking "github.com/himalayo/clusterfuck/api/networking"
+	permission "github.com/himalayo/clusterfuck/api/permission"
+	pb "github.com/himalayo/clusterfuck/api/player/proto"
+	subscription "github.com/himalayo/clusterfuck/api/subscription"
 )
 
 type LoginEvent struct {
-	Data *Database
-	UserData *UserData
-	Network *networking.NetworkingClient
-	Subscription *subscription.SubscriptionClient
-	Permission *permission.PermissionsClient
-	Modtool *modtool.ModtoolClient
+	Data          *Database
+	UserData      *UserData
+	Network       *networking.NetworkingClient
+	Subscription  *subscription.SubscriptionClient
+	Permission    *permission.PermissionsClient
+	Modtool       *modtool.ModtoolClient
 	Configuration *configuration.ConfigurationClient
-	Achievements *achievements.AchievementsClient
+	Achievements  *achievements.AchievementsClient
 }
 
 func (l *LoginEvent) Send(data []byte) {
@@ -29,16 +30,16 @@ func (l *LoginEvent) Send(data []byte) {
 }
 
 type EventListener struct {
-	ticket chan *pb.Ticket
-	data *Database
-	netw *networking.NetworkingClient
-	sub *subscription.SubscriptionClient
-	perm *permission.PermissionsClient
-	mod *modtool.ModtoolClient
-	cfg *configuration.ConfigurationClient
-	ach *achievements.AchievementsClient
-	login chan bool
-	loginHandlers []func(*LoginEvent)[]byte
+	ticket        chan *pb.Ticket
+	data          *Database
+	netw          *networking.NetworkingClient
+	sub           *subscription.SubscriptionClient
+	perm          *permission.PermissionsClient
+	mod           *modtool.ModtoolClient
+	cfg           *configuration.ConfigurationClient
+	ach           *achievements.AchievementsClient
+	login         chan bool
+	loginHandlers []func(*LoginEvent) []byte
 }
 
 func NewEventListener(data *Database, netw *networking.NetworkingClient, sub *subscription.SubscriptionClient, perm *permission.PermissionsClient, mod *modtool.ModtoolClient, cfg *configuration.ConfigurationClient, ach *achievements.AchievementsClient) *EventListener {
@@ -59,20 +60,20 @@ func (e *EventListener) resultLoginEvent(playerData *UserData) {
 	event := e.newLoginEvent(playerData)
 	event.Send(e.loginHandlers[0](event))
 	for _, handler := range e.loginHandlers[1:] {
-		go func(event *LoginEvent, handler func(*LoginEvent)[]byte) {
+		go func(event *LoginEvent, handler func(*LoginEvent) []byte) {
 			event.Send(handler(event))
 		}(event, handler)
 	}
 }
 
-func (e *EventListener) RegisterLoginHandler(handler func(*LoginEvent)[]byte) {
+func (e *EventListener) RegisterLoginHandler(handler func(*LoginEvent) []byte) {
 	e.loginHandlers = append(e.loginHandlers, handler)
 }
 
 func (e *EventListener) Login(sso *pb.Ticket) bool {
 	log.Printf("EventListener.Login: %s", sso)
 	e.ticket <- sso
-	out := <- e.login
+	out := <-e.login
 	return out
 }
 
@@ -80,9 +81,9 @@ func (e *EventListener) Listen() {
 	RegisterLoginHandlers(e)
 	for {
 		select {
-		case ticket := <- e.ticket:
+		case ticket := <-e.ticket:
 			e.handleLoginEvent(ticket.Sso)
-		case playerData := <- e.data.Auth:
+		case playerData := <-e.data.Auth:
 			e.resultLoginEvent(playerData)
 		}
 	}

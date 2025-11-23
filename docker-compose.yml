@@ -1,0 +1,139 @@
+services:
+  mariadb:
+    env_file: docker.env
+    container_name: mariadb
+    hostname: mariadb
+    image: 'mariadb:10'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASS}'
+      MYSQL_DATABASE: '${DB_NAME}'
+      MYSQL_USER: '${DB_USER}'
+      MYSQL_PASSWORD: '${DB_PASS}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+        - '3306:3306'
+    volumes:
+      - 'mariadb_data:/var/lib/mysql'
+      - './default-database:/docker-entrypoint-initdb.d'
+    networks:
+      - clusterfuck_network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASS}" ]
+      retries: 3
+      timeout: 5s
+  
+  networking:
+    env_file: docker.env
+    container_name: networking
+    hostname: networking
+    build:
+      context: ./
+      dockerfile: ./networking/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+
+  player:
+    env_file: docker.env
+    container_name: player
+    hostname: player
+    build:
+      context: ./
+      dockerfile: ./player/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      networking:
+        condition: service_started
+      achievements:
+        condition: service_started
+      configuration:
+        condition: service_started
+      modtool:
+        condition: service_started
+      permission:
+        condition: service_started
+      subscription:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+  
+  achievements:
+    env_file: docker.env
+    container_name: achievements
+    hostname: achievements
+    build:
+      context: ./
+      dockerfile: ./achievements/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  configuration:
+    env_file: docker.env
+    container_name: configuration 
+    hostname: configuration
+    build:
+      context: ./
+      dockerfile: ./configuration/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  modtool:
+    env_file: docker.env
+    container_name: modtool
+    hostname: modtool
+    build:
+      context: ./
+      dockerfile: ./modtool/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    
+  permission:
+    env_file: docker.env
+    container_name: permission
+    hostname: permission
+    build:
+      context: ./
+      dockerfile: ./permission/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  subscription:
+    env_file: docker.env
+    container_name: subscription
+    hostname: subscription
+    build:
+      context: ./
+      dockerfile: ./subscription/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+networks:
+  clusterfuck_network:
+    driver: bridge
+
+
+volumes:
+  mariadb_data:
+    driver: local

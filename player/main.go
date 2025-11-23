@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	achievements "github.com/himalayo/clusterfuck/api/achievements"
 	configuration "github.com/himalayo/clusterfuck/api/configuration"
@@ -31,12 +32,43 @@ var (
 
 func main() {
 	flag.Parse()
-	go Net.Listen(*networkingAddr)
-	go Sub.Listen(*subscriptionAddr)
-	go Perm.Listen(*permissionAddr)
-	go Mod.Listen(*modtoolAddr)
-	go Cfg.Listen(*configurationAddr)
-	go Ach.Listen(*achievementsAddr)
+
+	netAddr, present := os.LookupEnv("NETWORKING_HOST")
+	if !present {
+		netAddr = *networkingAddr
+	}
+
+	subAddr, present := os.LookupEnv("SUBSCRIPTION_HOST")
+	if !present {
+		subAddr = *subscriptionAddr
+	}
+
+	permAddr, present := os.LookupEnv("PERMISSION_HOST")
+	if !present {
+		permAddr = *permissionAddr
+	}
+
+	modAddr, present := os.LookupEnv("MODTOOL_HOST")
+	if !present {
+		modAddr = *modtoolAddr
+	}
+
+	confAddr, present := os.LookupEnv("CONFIGURATION_HOST")
+	if !present {
+		confAddr = *configurationAddr
+	}
+
+	achAddr, present := os.LookupEnv("ACHIEVEMENTS_HOST")
+	if !present {
+		achAddr = *achievementsAddr
+	}
+
+	go Net.Listen(netAddr)
+	go Sub.Listen(subAddr)
+	go Perm.Listen(permAddr)
+	go Mod.Listen(modAddr)
+	go Cfg.Listen(confAddr)
+	go Ach.Listen(achAddr)
 	go Data.Listen()
 	go Events.Listen()
 	StartServer(Events)

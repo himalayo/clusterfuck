@@ -4,12 +4,13 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 
 	player "github.com/himalayo/clusterfuck/api/player"
 )
 
 var (
-	addr       = flag.String("addr", "localhost:2096", "http service address")
+	addr       = flag.String("addr", ":2096", "http service address")
 	playerAddr = flag.String("player_addr", "localhost:50053", "player service address")
 	Man        = newManager()
 	Player     = player.NewClient()
@@ -19,8 +20,14 @@ var (
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
+
+	plAddr, present := os.LookupEnv("PLAYER_HOST")
+	if !present {
+		plAddr = *playerAddr
+	}
+
 	go Man.run()
-	go Player.Listen(*playerAddr)
+	go Player.Listen(plAddr)
 	go Auth.run(Player, Man)
 	RegisterHandlers()
 	go StartRpc()

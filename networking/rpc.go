@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
+	"strings"
 
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"google.golang.org/grpc"
@@ -41,7 +44,12 @@ func (s *grpcServer) SendPackets(_ context.Context, p *pb.Packets) (*pb.SuccessM
 }
 
 func StartRpc() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpc_port))
+	_, portString, _ := strings.Cut(os.Getenv("NETWORKING_HOST"), ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *grpc_port
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("Failed to start gRPC socket: %v", err)
 	}
