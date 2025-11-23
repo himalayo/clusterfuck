@@ -2,7 +2,8 @@ package main
 
 import (
 	"log"
-	player "github.com/himalayo/clusterfuck/player/api"
+
+	player "github.com/himalayo/clusterfuck/api/player"
 )
 
 type AuthSystem struct {
@@ -20,11 +21,10 @@ func handleLoginEvent(c *Client, msg []byte) {
 	Player.LoginRequest(sso)
 }
 
-
 func (a *AuthSystem) run(p *player.PlayerClient, m *Manager) {
 	for {
 		select {
-		case sso := <- p.Login:
+		case sso := <-p.Login:
 			client := a.pending[sso]
 			if client != nil {
 				m.login <- &Login{sso: sso, client: client}

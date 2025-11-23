@@ -2,17 +2,18 @@ package main
 
 import (
 	"flag"
-	"net/http"
 	"log"
-	player "github.com/himalayo/clusterfuck/player/api"
+	"net/http"
+
+	player "github.com/himalayo/clusterfuck/api/player"
 )
 
 var (
-	addr = flag.String("addr", "localhost:2096", "http service address")
+	addr       = flag.String("addr", "localhost:2096", "http service address")
 	playerAddr = flag.String("player_addr", "localhost:50053", "player service address")
-	Man = newManager()
-	Player = player.NewClient()
-	Auth = newAuth()
+	Man        = newManager()
+	Player     = player.NewClient()
+	Auth       = newAuth()
 )
 
 func main() {

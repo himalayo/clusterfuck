@@ -10,9 +10,8 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	pb "github.com/himalayo/clusterfuck/permission/proto"
+	pb "github.com/himalayo/clusterfuck/api/permission/proto"
 )
-
 
 type Database struct {
 	db *sql.DB
@@ -27,7 +26,7 @@ const (
 )
 
 type Permission struct {
-	Key string
+	Key     string
 	Setting PermissionSetting
 }
 
@@ -36,20 +35,20 @@ func (p Permission) toProto() *pb.Permission {
 }
 
 type Rank struct {
-	Id int
-	Level int
-	Permissions map[string]Permission
-	Variables map[string]string
-	Name string
-	Badge string
-	RoomEffect int
-	LogCommands bool
-	Prefix string
-	PrefixColor string
+	Id                  int
+	Level               int
+	Permissions         map[string]Permission
+	Variables           map[string]string
+	Name                string
+	Badge               string
+	RoomEffect          int
+	LogCommands         bool
+	Prefix              string
+	PrefixColor         string
 	DiamondsTimerAmount int
-	CreditsTimerAmount int
-	PixelsTimerAmount int
-	GotwTimerAmount int
+	CreditsTimerAmount  int
+	PixelsTimerAmount   int
+	GotwTimerAmount     int
 }
 
 func (r Rank) String() string {
@@ -63,20 +62,20 @@ func (r Rank) toProto() *pb.Rank {
 	}
 
 	return &pb.Rank{
-		Id: int32(r.Id),
-		Level: int32(r.Level),
-		Permissions: perms,
-		Variables: r.Variables,
-		Name: r.Name,
-		Badge: r.Badge,
-		RoomEffect: int32(r.RoomEffect),
-		LogCommands: r.LogCommands,
-		Prefix: r.Prefix,
-		PrefixColor: r.PrefixColor,
+		Id:                  int32(r.Id),
+		Level:               int32(r.Level),
+		Permissions:         perms,
+		Variables:           r.Variables,
+		Name:                r.Name,
+		Badge:               r.Badge,
+		RoomEffect:          int32(r.RoomEffect),
+		LogCommands:         r.LogCommands,
+		Prefix:              r.Prefix,
+		PrefixColor:         r.PrefixColor,
 		DiamondsTimerAmount: int32(r.DiamondsTimerAmount),
-		CreditsTimerAmount: int32(r.CreditsTimerAmount),
-		PixelsTimerAmount: int32(r.PixelsTimerAmount),
-		GotwTimerAmount: int32(r.GotwTimerAmount),
+		CreditsTimerAmount:  int32(r.CreditsTimerAmount),
+		PixelsTimerAmount:   int32(r.PixelsTimerAmount),
+		GotwTimerAmount:     int32(r.GotwTimerAmount),
 	}
 }
 
@@ -170,7 +169,7 @@ func rankFromQueryResult(cols []string, result []string) *Rank {
 		default:
 			if strings.HasPrefix(column, "acc_") || strings.HasPrefix(column, "cmd_") {
 				permission, err := strconv.ParseInt(result[idx], 10, 32)
-				if err == nil{
+				if err == nil {
 					output.Permissions[column] = Permission{Key: column, Setting: PermissionSetting(permission)}
 				}
 				continue

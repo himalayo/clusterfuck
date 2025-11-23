@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -8,8 +7,8 @@ import (
 	"log"
 	"net"
 
+	pb "github.com/himalayo/clusterfuck/api/modtool/proto"
 	"google.golang.org/grpc"
-	pb "github.com/himalayo/clusterfuck/modtool/proto"
 )
 
 var (

@@ -5,32 +5,32 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/himalayo/clusterfuck/api/modtool/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/himalayo/clusterfuck/modtool/proto"
 )
 
 type ModtoolClient struct {
-	client pb.ModtoolClient
-	compose chan struct{}
-	message chan []byte
-	getTopic chan int
+	client         pb.ModtoolClient
+	compose        chan struct{}
+	message        chan []byte
+	getTopic       chan int
 	resultingTopic chan *pb.CfhTopic
 }
 
-func NewClient() (*ModtoolClient) {
+func NewClient() *ModtoolClient {
 	return &ModtoolClient{compose: make(chan struct{}), message: make(chan []byte)}
 }
 
 func (n *ModtoolClient) CfhTopicsMessageComposer() []byte {
 	n.compose <- struct{}{}
-	result := <- n.message
+	result := <-n.message
 	return result
 }
 
 func (n *ModtoolClient) GetCfhTopic(id int) *pb.CfhTopic {
 	n.getTopic <- id
-	result := <- n.resultingTopic
+	result := <-n.resultingTopic
 	return result
 }
 
@@ -43,7 +43,7 @@ func (n *ModtoolClient) Listen(addr string) {
 	n.client = pb.NewModtoolClient(conn)
 	for {
 		select {
-		case topicId := <- n.getTopic:
+		case topicId := <-n.getTopic:
 			go func(id int) {
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()
@@ -55,7 +55,7 @@ func (n *ModtoolClient) Listen(addr string) {
 				}
 				n.resultingTopic <- topic
 			}(topicId)
-		case _ = <- n.compose:
+		case _ = <-n.compose:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()

@@ -1,14 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
-	"context"
 
+	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"google.golang.org/grpc"
-	pb "github.com/himalayo/clusterfuck/networking/proto"
 )
 
 var (
@@ -19,7 +19,7 @@ type grpcServer struct {
 	pb.UnimplementedNetworkingServer
 }
 
-func (s *grpcServer) SendPacket(_ context.Context, p *pb.Packet) (*pb.SuccessMessage, error)  {
+func (s *grpcServer) SendPacket(_ context.Context, p *pb.Packet) (*pb.SuccessMessage, error) {
 	client := Man.sessions[p.ClientId]
 	log.Printf("SendPacket: %s", p)
 	if client == nil {
@@ -28,7 +28,6 @@ func (s *grpcServer) SendPacket(_ context.Context, p *pb.Packet) (*pb.SuccessMes
 	client.send <- p.Packet
 	return &pb.SuccessMessage{Successful: true}, nil
 }
-
 
 func (s *grpcServer) SendPackets(_ context.Context, p *pb.Packets) (*pb.SuccessMessage, error) {
 	client := Man.sessions[p.ClientId]

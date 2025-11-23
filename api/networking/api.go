@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/himalayo/clusterfuck/networking/proto"
 )
 
 type Packet struct {
-	sso string
+	sso  string
 	body []byte
 }
 
@@ -19,8 +19,8 @@ type NetworkingClient struct {
 	send chan Packet
 }
 
-func NewClient() (*NetworkingClient) {
-	return &NetworkingClient {
+func NewClient() *NetworkingClient {
+	return &NetworkingClient{
 		send: make(chan Packet),
 	}
 }
@@ -60,7 +60,7 @@ func (n *NetworkingClient) Listen(addr string) {
 	c := pb.NewNetworkingClient(conn)
 	for {
 		select {
-		case packet := <- n.send:
+		case packet := <-n.send:
 			sendPacket(c, &pb.Packet{ClientId: packet.sso, Packet: packet.body})
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	pb "github.com/himalayo/clusterfuck/permission/proto"
+	pb "github.com/himalayo/clusterfuck/api/permission/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

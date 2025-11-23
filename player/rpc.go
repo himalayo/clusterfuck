@@ -7,8 +7,8 @@ import (
 	"log"
 	"net"
 
+	pb "github.com/himalayo/clusterfuck/api/player/proto"
 	"google.golang.org/grpc"
-	pb "github.com/himalayo/clusterfuck/player/proto"
 )
 
 var (

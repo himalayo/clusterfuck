@@ -5,18 +5,18 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/himalayo/clusterfuck/api/player/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/himalayo/clusterfuck/player/proto"
 )
 
 type PlayerClient struct {
-	client pb.PlayerClient
+	client       pb.PlayerClient
 	loginRequest chan string
-	Login chan string
+	Login        chan string
 }
 
-func NewClient() (*PlayerClient) {
+func NewClient() *PlayerClient {
 	return &PlayerClient{Login: make(chan string), loginRequest: make(chan string)}
 }
 
@@ -44,7 +44,7 @@ func (n *PlayerClient) Listen(addr string) {
 	log.Printf("PlayerClient.Listen: Listening for data with address: %s", addr)
 	for {
 		select {
-		case sso := <- n.loginRequest:
+		case sso := <-n.loginRequest:
 			response := n.sendLoginRequest(&pb.Ticket{Sso: sso})
 			if response == true {
 				n.Login <- sso

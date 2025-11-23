@@ -1,14 +1,15 @@
 package main
 
 import (
-	"log"
-	"flag"
 	"context"
-	"net"
+	"flag"
 	"fmt"
+	"log"
+	"net"
+
 	"google.golang.org/grpc"
 
-	pb "github.com/himalayo/clusterfuck/permission/proto"
+	pb "github.com/himalayo/clusterfuck/api/permission/proto"
 )
 
 var (
@@ -21,7 +22,7 @@ type server struct {
 }
 
 func toRankList(ranks []Rank) *pb.RankList {
-	elements := make([]*pb.Rank,0)
+	elements := make([]*pb.Rank, 0)
 	for _, rank := range ranks {
 		elements = append(elements, rank.toProto())
 	}

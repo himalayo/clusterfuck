@@ -3,14 +3,14 @@ package main
 import (
 	"database/sql"
 	"log"
-	"os"
-	"strings"
 	"maps"
+	"os"
 	"slices"
+	"strings"
 
 	"github.com/go-sql-driver/mysql"
 
-	pb "github.com/himalayo/clusterfuck/modtool/proto"
+	pb "github.com/himalayo/clusterfuck/api/modtool/proto"
 )
 
 const partialCfhTopicsQuery = `SELECT
@@ -21,7 +21,6 @@ support_cfh_topics.action,
 support_cfh_categories.name_internal AS category_name_internal
 FROM support_cfh_topics
 LEFT JOIN support_cfh_categories ON support_cfh_categories.id = support_cfh_topics.category_id`
-
 
 type Database struct {
 	db *sql.DB
@@ -66,7 +65,7 @@ func parseBool(value string) bool {
 	return value == "1"
 }
 
-func (data *Database) GetIssuePreset(id int) (*pb.IssuePreset, error ) {
+func (data *Database) GetIssuePreset(id int) (*pb.IssuePreset, error) {
 	if id == 0 {
 		return &pb.IssuePreset{Id: 0}, nil
 	}
@@ -100,13 +99,13 @@ func (data *Database) GetCfhTopic(id int) (*pb.CfhTopic, error) {
 }
 
 type PartialTopic struct {
-	Name string
-	Id int
+	Name   string
+	Id     int
 	Action string
 }
 
 type PartialCategory struct {
-	Name string
+	Name   string
 	Topics []PartialTopic
 }
 

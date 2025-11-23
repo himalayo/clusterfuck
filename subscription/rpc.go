@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/himalayo/clusterfuck/subscription/proto"
+	pb "github.com/himalayo/clusterfuck/api/subscription/proto"
 	"google.golang.org/grpc"
 )
 

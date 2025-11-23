@@ -1,18 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
-	"context"
 
 	"database/sql"
 
+	pb "github.com/himalayo/clusterfuck/api/configuration/proto"
 	"google.golang.org/grpc"
-	pb "github.com/himalayo/clusterfuck/configuration/proto"
 )
-
 
 var (
 	grpc_port = flag.Int("grpc_port", 50057, "The gRPC server port")

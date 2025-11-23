@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	pb "github.com/himalayo/clusterfuck/subscription/proto"
+	pb "github.com/himalayo/clusterfuck/api/subscription/proto"
 )
 
 type Database struct {
