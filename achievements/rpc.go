@@ -7,8 +7,8 @@ import (
 	"log"
 	"net"
 
+	pb "github.com/himalayo/clusterfuck/api/achievements/proto"
 	"google.golang.org/grpc"
-	pb "github.com/himalayo/clusterfuck/achievements/proto"
 )
 
 var (
@@ -35,7 +35,6 @@ func (s *server) InventoryAchievementsComposer(_ context.Context, _ *pb.Empty) (
 	}
 	return &pb.Packet{Data: InventoryAchievementsComposer(achievements)}, nil
 }
-
 
 func StartServer(data *Database) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *serverPort))

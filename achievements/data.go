@@ -1,17 +1,16 @@
-
 package main
 
 import (
-	"database/sql"
-	"os"
-	"log"
-	"strings"
 	"cmp"
-	"slices"
+	"database/sql"
+	"log"
 	"maps"
+	"os"
+	"slices"
+	"strings"
 
 	"github.com/go-sql-driver/mysql"
-	pb "github.com/himalayo/clusterfuck/achievements/proto"
+	pb "github.com/himalayo/clusterfuck/api/achievements/proto"
 )
 
 type Database struct {
