@@ -15,13 +15,27 @@ type Packet struct {
 	body []byte
 }
 
+type Packets struct {
+	sso  string
+	body [][]byte
+}
+
+type IncomingHandlerRequest struct {
+	address string
+	headers []int
+}
+
 type NetworkingClient struct {
-	send chan Packet
+	send          chan Packet
+	connect       chan IncomingHandlerRequest
+	send_multiple chan Packets
 }
 
 func NewClient() *NetworkingClient {
 	return &NetworkingClient{
-		send: make(chan Packet),
+		send:          make(chan Packet),
+		connect:       make(chan IncomingHandlerRequest),
+		send_multiple: make(chan Packets),
 	}
 }
 
@@ -47,8 +61,27 @@ func sendPackets(client pb.NetworkingClient, msgs *pb.Packets) bool {
 	return succ.Successful
 }
 
+func connectHandler(client pb.NetworkingClient, req *pb.IncomingInstance) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	succ, err := client.RegisterIncomingListener(ctx, req)
+	if err != nil {
+		log.Printf("could not connect incoming message handler (headers: %v): %v", req.Headers, err)
+		return false
+	}
+	return succ.Successful
+}
+
+func (n *NetworkingClient) ConnectHandler(address string, headers []int) {
+	n.connect <- IncomingHandlerRequest{address: address, headers: headers}
+}
+
 func (n *NetworkingClient) Send(sso string, data []byte) {
 	n.send <- Packet{sso: sso, body: data}
+}
+
+func (n *NetworkingClient) SendMultiple(sso string, data [][]byte) {
+	n.send_multiple <- Packets{sso: sso, body: data}
 }
 
 func (n *NetworkingClient) Listen(addr string) {
@@ -61,7 +94,23 @@ func (n *NetworkingClient) Listen(addr string) {
 	for {
 		select {
 		case packet := <-n.send:
-			sendPacket(c, &pb.Packet{ClientId: packet.sso, Packet: packet.body})
+			go func() {
+				sendPacket(c, &pb.Packet{ClientId: packet.sso, Packet: packet.body})
+			}()
+
+		case packets := <-n.send_multiple:
+			go func() {
+				sendPackets(c, &pb.Packets{ClientId: packets.sso, Packets: packets.body})
+			}()
+
+		case request := <-n.connect:
+			go func() {
+				headers := make([]int32, len(request.headers))
+				for i := range request.headers {
+					headers[i] = int32(request.headers[i])
+				}
+				connectHandler(c, &pb.IncomingInstance{Address: request.address, Headers: headers})
+			}()
 		}
 	}
 }

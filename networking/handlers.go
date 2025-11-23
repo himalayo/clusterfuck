@@ -1,9 +1,9 @@
 package main
 
-var Handlers = make(map[int16]func(*Client,[]byte))
+var Handlers = make(map[int16][]func(*Client, []byte))
 
 func registerHandler(header int16, handler func(*Client, []byte)) {
-	Handlers[header] = handler
+	Handlers[header] = append(Handlers[header], handler)
 }
 
 func RegisterHandlers() {

@@ -46,7 +46,7 @@ func (n *PlayerClient) Listen(addr string) {
 		select {
 		case sso := <-n.loginRequest:
 			response := n.sendLoginRequest(&pb.Ticket{Sso: sso})
-			if response == true {
+			if response {
 				n.Login <- sso
 			}
 		}

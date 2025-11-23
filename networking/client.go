@@ -1,19 +1,20 @@
 package main
 
 import (
-	"net/http"
-	"github.com/gorilla/websocket"
 	"log"
+	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 type Client struct {
 	manager *Manager
-	conn  *websocket.Conn
-	send chan []byte
+	conn    *websocket.Conn
+	send    chan []byte
+	sso     string
 }
 
-
-var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true; } }
+var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
 
 func (c *Client) die() {
 	c.manager.die <- c
@@ -33,19 +34,21 @@ func (c *Client) read() {
 			continue
 		}
 		parsedMessage := ParseMessage(message)
-		fn := Handlers[parsedMessage.header]
-		if fn == nil {
+		fns, ok := Handlers[parsedMessage.header]
+		if !ok {
 			log.Println("Client.read() unrecognized header:", parsedMessage.header)
 			continue
 		}
-		go fn(c, parsedMessage.data)
+		for i := range fns {
+			go fns[i](c, parsedMessage.data)
+		}
 	}
 }
 
 func (c *Client) write() {
 	defer c.die()
 	for {
-		message, ok := <- c.send
+		message, ok := <-c.send
 		if !ok {
 			c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 			return

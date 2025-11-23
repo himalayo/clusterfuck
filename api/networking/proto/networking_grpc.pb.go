@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Networking_SendPacket_FullMethodName  = "/networking.Networking/SendPacket"
-	Networking_SendPackets_FullMethodName = "/networking.Networking/SendPackets"
+	Networking_SendPacket_FullMethodName               = "/networking.Networking/SendPacket"
+	Networking_SendPackets_FullMethodName              = "/networking.Networking/SendPackets"
+	Networking_RegisterIncomingListener_FullMethodName = "/networking.Networking/RegisterIncomingListener"
 )
 
 // NetworkingClient is the client API for Networking service.
@@ -29,6 +30,7 @@ const (
 type NetworkingClient interface {
 	SendPacket(ctx context.Context, in *Packet, opts ...grpc.CallOption) (*SuccessMessage, error)
 	SendPackets(ctx context.Context, in *Packets, opts ...grpc.CallOption) (*SuccessMessage, error)
+	RegisterIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error)
 }
 
 type networkingClient struct {
@@ -59,12 +61,23 @@ func (c *networkingClient) SendPackets(ctx context.Context, in *Packets, opts ..
 	return out, nil
 }
 
+func (c *networkingClient) RegisterIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuccessMessage)
+	err := c.cc.Invoke(ctx, Networking_RegisterIncomingListener_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkingServer is the server API for Networking service.
 // All implementations must embed UnimplementedNetworkingServer
 // for forward compatibility.
 type NetworkingServer interface {
 	SendPacket(context.Context, *Packet) (*SuccessMessage, error)
 	SendPackets(context.Context, *Packets) (*SuccessMessage, error)
+	RegisterIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error)
 	mustEmbedUnimplementedNetworkingServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedNetworkingServer) SendPacket(context.Context, *Packet) (*Succ
 }
 func (UnimplementedNetworkingServer) SendPackets(context.Context, *Packets) (*SuccessMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPackets not implemented")
+}
+func (UnimplementedNetworkingServer) RegisterIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterIncomingListener not implemented")
 }
 func (UnimplementedNetworkingServer) mustEmbedUnimplementedNetworkingServer() {}
 func (UnimplementedNetworkingServer) testEmbeddedByValue()                    {}
@@ -138,6 +154,24 @@ func _Networking_SendPackets_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Networking_RegisterIncomingListener_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncomingInstance)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkingServer).RegisterIncomingListener(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Networking_RegisterIncomingListener_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkingServer).RegisterIncomingListener(ctx, req.(*IncomingInstance))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Networking_ServiceDesc is the grpc.ServiceDesc for Networking service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,112 @@ var Networking_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendPackets",
 			Handler:    _Networking_SendPackets_Handler,
+		},
+		{
+			MethodName: "RegisterIncomingListener",
+			Handler:    _Networking_RegisterIncomingListener_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "networking.proto",
+}
+
+const (
+	IncomingListener_ReceivePacket_FullMethodName = "/networking.IncomingListener/ReceivePacket"
+)
+
+// IncomingListenerClient is the client API for IncomingListener service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type IncomingListenerClient interface {
+	ReceivePacket(ctx context.Context, in *Packet, opts ...grpc.CallOption) (*SuccessMessage, error)
+}
+
+type incomingListenerClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewIncomingListenerClient(cc grpc.ClientConnInterface) IncomingListenerClient {
+	return &incomingListenerClient{cc}
+}
+
+func (c *incomingListenerClient) ReceivePacket(ctx context.Context, in *Packet, opts ...grpc.CallOption) (*SuccessMessage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuccessMessage)
+	err := c.cc.Invoke(ctx, IncomingListener_ReceivePacket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// IncomingListenerServer is the server API for IncomingListener service.
+// All implementations must embed UnimplementedIncomingListenerServer
+// for forward compatibility.
+type IncomingListenerServer interface {
+	ReceivePacket(context.Context, *Packet) (*SuccessMessage, error)
+	mustEmbedUnimplementedIncomingListenerServer()
+}
+
+// UnimplementedIncomingListenerServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedIncomingListenerServer struct{}
+
+func (UnimplementedIncomingListenerServer) ReceivePacket(context.Context, *Packet) (*SuccessMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReceivePacket not implemented")
+}
+func (UnimplementedIncomingListenerServer) mustEmbedUnimplementedIncomingListenerServer() {}
+func (UnimplementedIncomingListenerServer) testEmbeddedByValue()                          {}
+
+// UnsafeIncomingListenerServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to IncomingListenerServer will
+// result in compilation errors.
+type UnsafeIncomingListenerServer interface {
+	mustEmbedUnimplementedIncomingListenerServer()
+}
+
+func RegisterIncomingListenerServer(s grpc.ServiceRegistrar, srv IncomingListenerServer) {
+	// If the following call pancis, it indicates UnimplementedIncomingListenerServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&IncomingListener_ServiceDesc, srv)
+}
+
+func _IncomingListener_ReceivePacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Packet)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IncomingListenerServer).ReceivePacket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IncomingListener_ReceivePacket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IncomingListenerServer).ReceivePacket(ctx, req.(*Packet))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// IncomingListener_ServiceDesc is the grpc.ServiceDesc for IncomingListener service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var IncomingListener_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "networking.IncomingListener",
+	HandlerType: (*IncomingListenerServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ReceivePacket",
+			Handler:    _IncomingListener_ReceivePacket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

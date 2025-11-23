@@ -10,12 +10,15 @@ import (
 	"strconv"
 	"strings"
 
+	listener "github.com/himalayo/clusterfuck/api/networking/listener"
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
 	grpc_port = flag.Int("grpc_port", 50051, "The gRPC server port")
+	Listeners = make(map[string]listener.Listener)
 )
 
 type grpcServer struct {
@@ -40,6 +43,37 @@ func (s *grpcServer) SendPackets(_ context.Context, p *pb.Packets) (*pb.SuccessM
 	for _, packet := range p.Packets {
 		client.send <- packet
 	}
+	return &pb.SuccessMessage{Successful: true}, nil
+}
+
+func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.IncomingInstance) (*pb.SuccessMessage, error) {
+	lis := listener.NewListener()
+	addr := in.Address
+	if addr == "" {
+		return &pb.SuccessMessage{Successful: false}, nil
+	}
+	headers := in.GetHeaders()
+	if headers == nil {
+		return &pb.SuccessMessage{Successful: false}, nil
+	}
+
+	for i := range headers {
+		registerHandler(int16(headers[i]), func(c *Client, data []byte) {
+			if c.sso == "" {
+				return
+			}
+			go func() {
+				lis.Send(c.sso, data)
+			}()
+		})
+	}
+
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return &pb.SuccessMessage{Successful: false}, nil
+	}
+	go lis.ListenWithConnection(conn)
+
 	return &pb.SuccessMessage{Successful: true}, nil
 }
 

@@ -21,6 +21,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type IncomingInstance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Headers       []int32                `protobuf:"varint,2,rep,packed,name=headers,proto3" json:"headers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IncomingInstance) Reset() {
+	*x = IncomingInstance{}
+	mi := &file_networking_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IncomingInstance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IncomingInstance) ProtoMessage() {}
+
+func (x *IncomingInstance) ProtoReflect() protoreflect.Message {
+	mi := &file_networking_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IncomingInstance.ProtoReflect.Descriptor instead.
+func (*IncomingInstance) Descriptor() ([]byte, []int) {
+	return file_networking_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *IncomingInstance) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *IncomingInstance) GetHeaders() []int32 {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
 type Packets struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
@@ -31,7 +83,7 @@ type Packets struct {
 
 func (x *Packets) Reset() {
 	*x = Packets{}
-	mi := &file_networking_proto_msgTypes[0]
+	mi := &file_networking_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +95,7 @@ func (x *Packets) String() string {
 func (*Packets) ProtoMessage() {}
 
 func (x *Packets) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[0]
+	mi := &file_networking_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +108,7 @@ func (x *Packets) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Packets.ProtoReflect.Descriptor instead.
 func (*Packets) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{0}
+	return file_networking_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Packets) GetClientId() string {
@@ -83,7 +135,7 @@ type Packet struct {
 
 func (x *Packet) Reset() {
 	*x = Packet{}
-	mi := &file_networking_proto_msgTypes[1]
+	mi := &file_networking_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +147,7 @@ func (x *Packet) String() string {
 func (*Packet) ProtoMessage() {}
 
 func (x *Packet) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[1]
+	mi := &file_networking_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +160,7 @@ func (x *Packet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Packet.ProtoReflect.Descriptor instead.
 func (*Packet) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{1}
+	return file_networking_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Packet) GetClientId() string {
@@ -128,13 +180,14 @@ func (x *Packet) GetPacket() []byte {
 type SuccessMessage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Successful    bool                   `protobuf:"varint,1,opt,name=successful,proto3" json:"successful,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SuccessMessage) Reset() {
 	*x = SuccessMessage{}
-	mi := &file_networking_proto_msgTypes[2]
+	mi := &file_networking_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -146,7 +199,7 @@ func (x *SuccessMessage) String() string {
 func (*SuccessMessage) ProtoMessage() {}
 
 func (x *SuccessMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[2]
+	mi := &file_networking_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +212,7 @@ func (x *SuccessMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessMessage.ProtoReflect.Descriptor instead.
 func (*SuccessMessage) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{2}
+	return file_networking_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SuccessMessage) GetSuccessful() bool {
@@ -169,27 +222,41 @@ func (x *SuccessMessage) GetSuccessful() bool {
 	return false
 }
 
+func (x *SuccessMessage) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_networking_proto protoreflect.FileDescriptor
 
 const file_networking_proto_rawDesc = "" +
 	"\n" +
 	"\x10networking.proto\x12\n" +
-	"networking\"@\n" +
+	"networking\"F\n" +
+	"\x10IncomingInstance\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x18\n" +
+	"\aheaders\x18\x02 \x03(\x05R\aheaders\"@\n" +
 	"\aPackets\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x18\n" +
 	"\apackets\x18\x02 \x03(\fR\apackets\"=\n" +
 	"\x06Packet\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x16\n" +
-	"\x06packet\x18\x02 \x01(\fR\x06packet\"0\n" +
+	"\x06packet\x18\x02 \x01(\fR\x06packet\"J\n" +
 	"\x0eSuccessMessage\x12\x1e\n" +
 	"\n" +
 	"successful\x18\x01 \x01(\bR\n" +
-	"successful2\x8e\x01\n" +
+	"successful\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xe6\x01\n" +
 	"\n" +
 	"Networking\x12>\n" +
 	"\n" +
 	"SendPacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00\x12@\n" +
-	"\vSendPackets\x12\x13.networking.Packets\x1a\x1a.networking.SuccessMessage\"\x00B2Z0github.com/himalayo/clusterfuck/networking/protob\x06proto3"
+	"\vSendPackets\x12\x13.networking.Packets\x1a\x1a.networking.SuccessMessage\"\x00\x12V\n" +
+	"\x18RegisterIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x002U\n" +
+	"\x10IncomingListener\x12A\n" +
+	"\rReceivePacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00B2Z0github.com/himalayo/clusterfuck/networking/protob\x06proto3"
 
 var (
 	file_networking_proto_rawDescOnce sync.Once
@@ -203,19 +270,24 @@ func file_networking_proto_rawDescGZIP() []byte {
 	return file_networking_proto_rawDescData
 }
 
-var file_networking_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_networking_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_networking_proto_goTypes = []any{
-	(*Packets)(nil),        // 0: networking.Packets
-	(*Packet)(nil),         // 1: networking.Packet
-	(*SuccessMessage)(nil), // 2: networking.SuccessMessage
+	(*IncomingInstance)(nil), // 0: networking.IncomingInstance
+	(*Packets)(nil),          // 1: networking.Packets
+	(*Packet)(nil),           // 2: networking.Packet
+	(*SuccessMessage)(nil),   // 3: networking.SuccessMessage
 }
 var file_networking_proto_depIdxs = []int32{
-	1, // 0: networking.Networking.SendPacket:input_type -> networking.Packet
-	0, // 1: networking.Networking.SendPackets:input_type -> networking.Packets
-	2, // 2: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
-	2, // 3: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	2, // 0: networking.Networking.SendPacket:input_type -> networking.Packet
+	1, // 1: networking.Networking.SendPackets:input_type -> networking.Packets
+	0, // 2: networking.Networking.RegisterIncomingListener:input_type -> networking.IncomingInstance
+	2, // 3: networking.IncomingListener.ReceivePacket:input_type -> networking.Packet
+	3, // 4: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
+	3, // 5: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
+	3, // 6: networking.Networking.RegisterIncomingListener:output_type -> networking.SuccessMessage
+	3, // 7: networking.IncomingListener.ReceivePacket:output_type -> networking.SuccessMessage
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -232,9 +304,9 @@ func file_networking_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_networking_proto_rawDesc), len(file_networking_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_networking_proto_goTypes,
 		DependencyIndexes: file_networking_proto_depIdxs,

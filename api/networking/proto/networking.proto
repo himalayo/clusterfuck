@@ -7,6 +7,16 @@ option go_package = "github.com/himalayo/clusterfuck/networking/proto";
 service Networking {
 	rpc SendPacket (Packet) returns (SuccessMessage) {}
 	rpc SendPackets (Packets) returns (SuccessMessage) {}
+	rpc RegisterIncomingListener (IncomingInstance) returns (SuccessMessage) {}
+}
+
+service IncomingListener {
+	rpc ReceivePacket (Packet) returns (SuccessMessage) {}
+}
+
+message IncomingInstance {
+	string address = 1;
+	repeated int32 headers = 2;
 }
 
 message Packets {
@@ -21,4 +31,5 @@ message Packet {
 
 message SuccessMessage {
 	bool successful = 1;
+	string message = 2;	
 }
