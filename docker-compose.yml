@@ -26,6 +26,8 @@ services:
     env_file: docker.env
     container_name: networking
     hostname: networking
+    ports:
+      - '2096:2096'
     build:
       context: ./
       dockerfile: ./networking/Dockerfile
