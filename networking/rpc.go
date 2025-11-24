@@ -27,7 +27,6 @@ type grpcServer struct {
 
 func (s *grpcServer) SendPacket(_ context.Context, p *pb.Packet) (*pb.SuccessMessage, error) {
 	client := Man.sessions[p.ClientId]
-	log.Printf("SendPacket: %s", p)
 	if client == nil {
 		return &pb.SuccessMessage{Successful: false}, nil
 	}
@@ -58,12 +57,12 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 	}
 
 	for i := range headers {
-		registerHandler(int16(headers[i]), func(c *Client, data []byte) {
+		registerHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
 			if c.sso == "" {
 				return
 			}
 			go func() {
-				lis.Send(c.sso, data)
+				lis.Send(c.sso, packet)
 			}()
 		})
 	}
@@ -73,6 +72,8 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 		return &pb.SuccessMessage{Successful: false}, nil
 	}
 	go lis.ListenWithConnection(conn)
+
+	log.Printf("Successfully established connection with: %s for headers: %v", addr, headers)
 
 	return &pb.SuccessMessage{Successful: true}, nil
 }

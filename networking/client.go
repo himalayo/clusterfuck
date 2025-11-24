@@ -40,7 +40,7 @@ func (c *Client) read() {
 			continue
 		}
 		for i := range fns {
-			go fns[i](c, parsedMessage.data)
+			go fns[i](c, parsedMessage.data, message)
 		}
 	}
 }
@@ -58,7 +58,6 @@ func (c *Client) write() {
 		if err != nil {
 			return
 		}
-		log.Printf("Sending: [% x]", message)
 		w.Write(message)
 		numMessages := len(c.send)
 		for i := 0; i < numMessages; i++ {

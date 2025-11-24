@@ -77,8 +77,17 @@ func (e *EventListener) Login(sso *pb.Ticket) bool {
 	return out
 }
 
+func HandleUserDataRequest(sso string, _ []byte) {
+	log.Printf("%s: HandleUserDataRequest called!", sso)
+}
+
+func RegisterIncomingHandlers() {
+	Incoming.RegisterHandler(357, HandleUserDataRequest)
+}
+
 func (e *EventListener) Listen() {
 	RegisterLoginHandlers(e)
+	RegisterIncomingHandlers()
 	for {
 		select {
 		case ticket := <-e.ticket:

@@ -14,7 +14,7 @@ func newAuth() *AuthSystem {
 	return &AuthSystem{pending: make(map[string]*Client)}
 }
 
-func handleLoginEvent(c *Client, msg []byte) {
+func handleLoginEvent(c *Client, msg []byte, _ []byte) {
 	sso, _ := ReadString(msg)
 	log.Printf("handleLoginEvent: %s", sso)
 	Auth.pending[sso] = c

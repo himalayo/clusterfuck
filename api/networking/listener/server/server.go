@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 
+	api "github.com/himalayo/clusterfuck/api/networking"
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"google.golang.org/grpc"
 )
@@ -19,6 +20,21 @@ func getPacketHeader(data []byte) int16 {
 type IncomingServer struct {
 	pb.UnimplementedIncomingListenerServer
 	handlers map[int16][]func(string, []byte)
+}
+
+func NewIncomingServer() *IncomingServer {
+	return &IncomingServer{
+		handlers: make(map[int16][]func(string, []byte)),
+	}
+}
+
+func (s *IncomingServer) RequestConnection(addr string, n *api.NetworkingClient) {
+	headers := make([]int, 0, len(s.handlers))
+	for header := range s.handlers {
+		headers = append(headers, int(header))
+	}
+	log.Printf("Requesting incoming connection as: %s for headers: %v", addr, headers)
+	n.ConnectHandler(addr, headers)
 }
 
 func (s *IncomingServer) ReceivePacket(_ context.Context, p *pb.Packet) (*pb.SuccessMessage, error) {

@@ -27,8 +27,19 @@ func (s *server) LoginPlayer(_ context.Context, sso *pb.Ticket) (*pb.LoginStatus
 	return &pb.LoginStatus{Success: s.events.Login(sso)}, nil
 }
 
+func StartIncoming(addr string) {
+	hostname, portString, _ := strings.Cut(addr, ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *serverPort
+	}
+	go Incoming.Serve(port + 500)
+	go Incoming.RequestConnection(fmt.Sprintf("%s:%d", hostname, port+500), Net)
+}
+
 func StartServer(events *EventListener) {
-	_, portString, _ := strings.Cut(os.Getenv("PLAYER_HOST"), ":")
+	addr := os.Getenv("PLAYER_HOST")
+	_, portString, _ := strings.Cut(addr, ":")
 	port, err := strconv.Atoi(portString)
 	if err != nil {
 		port = *serverPort
@@ -39,6 +50,7 @@ func StartServer(events *EventListener) {
 	}
 	s := grpc.NewServer()
 	pb.RegisterPlayerServer(s, &server{events: events})
+	go StartIncoming(addr)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

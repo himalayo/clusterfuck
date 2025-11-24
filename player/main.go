@@ -8,6 +8,7 @@ import (
 	configuration "github.com/himalayo/clusterfuck/api/configuration"
 	modtool "github.com/himalayo/clusterfuck/api/modtool"
 	networking "github.com/himalayo/clusterfuck/api/networking"
+	listener "github.com/himalayo/clusterfuck/api/networking/listener/server"
 	permission "github.com/himalayo/clusterfuck/api/permission"
 	subscription "github.com/himalayo/clusterfuck/api/subscription"
 	_ "github.com/joho/godotenv/autoload"
@@ -26,6 +27,7 @@ var (
 	Mod               = modtool.NewClient()
 	Cfg               = configuration.NewClient()
 	Ach               = achievements.NewClient()
+	Incoming          = listener.NewIncomingServer()
 	Data              = NewDatabase(ConfigDatabaseFromEnv())
 	Events            = NewEventListener(Data, Net, Sub, Perm, Mod, Cfg, Ach)
 )
