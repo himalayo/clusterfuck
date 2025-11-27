@@ -77,12 +77,12 @@ func (e *EventListener) Login(sso *pb.Ticket) bool {
 	return out
 }
 
-func HandleUserDataRequest(sso string, _ []byte) {
+func handleUserDataRequest(sso string, _ []byte) {
 	log.Printf("%s: HandleUserDataRequest called!", sso)
 }
 
 func RegisterIncomingHandlers() {
-	Incoming.RegisterHandler(357, HandleUserDataRequest)
+	Incoming.RegisterHandler(357, handleUserDataRequest)
 }
 
 func (e *EventListener) Listen() {

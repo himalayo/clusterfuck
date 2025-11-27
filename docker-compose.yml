@@ -130,6 +130,42 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+  permission-redis:
+    image: 'redis:alpine'
+    hostname: permission-redis
+    container_name: permission-redis
+    ports:
+        - '${PERMISSION_REDIS_PORT:-6379}:6379'
+    volumes:
+        - 'permission_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  player-redis:
+    image: 'redis:alpine'
+    hostname: player-redis
+    container_name: player-redis
+    ports:
+        - '${PLAYER_REDIS_PORT:-6379}:6379'
+    volumes:
+        - 'player_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+    
 
 networks:
   clusterfuck_network:
@@ -137,5 +173,9 @@ networks:
 
 
 volumes:
+  permission_redis:
+    driver: local
+  player_redis:
+    driver: local
   mariadb_data:
     driver: local

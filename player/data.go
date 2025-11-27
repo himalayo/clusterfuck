@@ -1,22 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
-	"database/sql"
+	"net"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
 )
 
 type UserData struct {
-	Id int
-	Username string
+	Id         int
+	Username   string
 	AuthTicket string
-	Look string
-	Motto string
-	HomeRoom int
-	Rank int
+	Look       string
+	Motto      string
+	HomeRoom   int
+	Rank       int
 }
 
 func (u *UserData) String() string {
@@ -24,11 +26,11 @@ func (u *UserData) String() string {
 }
 
 type UserEffect struct {
-	UserId int
-	Effect int
-	Duration int
+	UserId              int
+	Effect              int
+	Duration            int
 	ActivationTimestamp int
-	Total int
+	Total               int
 }
 
 func (e *UserEffect) String() string {
@@ -36,51 +38,67 @@ func (e *UserEffect) String() string {
 }
 
 type Database struct {
-	db *sql.DB
-	auth chan string
-	Auth chan *UserData
-	effects chan int
-	Effects chan []UserEffect
-	achievement chan int
+	cache            *redis.Client
+	db               *sql.DB
+	auth             chan string
+	Auth             chan *UserData
+	effects          chan int
+	Effects          chan []UserEffect
+	achievement      chan int
 	AchievementScore chan int
 }
 
-func ConfigDatabaseFromEnv() *mysql.Config {
-	cfg := mysql.NewConfig()
-	cfg.User = os.Getenv("DB_USER")
-	cfg.Passwd = os.Getenv("DB_PASS")
-	cfg.Net = "tcp"
-	cfg.Addr = os.Getenv("DB_ADDR")
-	cfg.DBName = os.Getenv("DB_NAME")
-
-	return cfg
+type DatabaseConfig struct {
+	sql_config   *mysql.Config
+	redis_config *redis.Options
 }
 
-func ConfigDatabase(user string, password string, address string, name string) *mysql.Config {
-	cfg := mysql.NewConfig()
-	cfg.User = user
-	cfg.Passwd = password
-	cfg.Net = "tcp"
-	cfg.Addr = address
-	cfg.DBName = name
+func ConfigDatabaseFromEnv() *DatabaseConfig {
+	sql_cfg := mysql.NewConfig()
+	sql_cfg.User = os.Getenv("DB_USER")
+	sql_cfg.Passwd = os.Getenv("DB_PASS")
+	sql_cfg.Net = "tcp"
+	sql_cfg.Addr = os.Getenv("DB_ADDR")
+	sql_cfg.DBName = os.Getenv("DB_NAME")
 
-	return cfg
+	redis_port, ok := os.LookupEnv("PLAYER_REDIS_PORT")
+	if !ok {
+		redis_port = "6379"
+	}
+	redis_addr, ok := os.LookupEnv("PLAYER_REDIS_ADDR")
+	if !ok {
+		redis_addr = net.JoinHostPort(os.Getenv("PLAYER_REDIS_HOST"), redis_port)
+	}
+	password := os.Getenv("PLAYER_REDIS")
+	redis_config := &redis.Options{
+		Addr:     redis_addr,
+		Password: password,
+		DB:       0,
+	}
+
+	return &DatabaseConfig{
+		sql_config:   sql_cfg,
+		redis_config: redis_config,
+	}
 }
 
-func NewDatabase(cfg *mysql.Config) *Database {
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+func NewDatabase(cfg *DatabaseConfig) *Database {
+	db, err := sql.Open("mysql", cfg.sql_config.FormatDSN())
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	rdb := redis.NewClient(cfg.redis_config)
+
 	return &Database{
-		db: db,
-		auth: make(chan string),
-		Auth: make(chan *UserData),
-		effects: make(chan int),
-		Effects: make(chan []UserEffect),
+		cache:            rdb,
+		db:               db,
+		auth:             make(chan string),
+		Auth:             make(chan *UserData),
+		effects:          make(chan int),
+		Effects:          make(chan []UserEffect),
 		AchievementScore: make(chan int),
-		achievement: make(chan int),
+		achievement:      make(chan int),
 	}
 }
 
@@ -161,15 +179,15 @@ func (data *Database) getFavoriteRooms(userId int) []int {
 func (data *Database) Listen() {
 	for {
 		select {
-		case sso := <- data.auth:
+		case sso := <-data.auth:
 			go func(data *Database) {
 				data.Auth <- data.loadUserData(sso)
 			}(data)
-		case id := <- data.effects:
+		case id := <-data.effects:
 			go func(data *Database) {
 				data.Effects <- data.loadUserEffects(id)
 			}(data)
-		case id := <- data.achievement:
+		case id := <-data.achievement:
 			go func(data *Database) {
 				data.AchievementScore <- data.getAchievementScore(id)
 			}(data)
