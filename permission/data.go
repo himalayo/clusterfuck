@@ -447,6 +447,7 @@ func (data *Database) GetPermission(rankId int, permissionKey string) (int, erro
 			return int(permission), nil
 		}
 	}
+	go data.GetRank(rankId)
 
 	firstRow := data.db.QueryRow("SELECT ? FROM permissions WHERE id = ? LIMIT 1", permissionKey, rankId)
 	if err := firstRow.Scan(&permissionKey); err != nil {
@@ -474,10 +475,121 @@ func (data *Database) GetRankLevel(rankId int) (int, error) {
 			return int(permission), nil
 		}
 	}
+	go data.GetRank(rankId)
 	var result int
 	row := data.db.QueryRow("SELECT level FROM permissions WHERE id = ? LIMIT 1", rankId)
 	if err := row.Scan(&result); err != nil {
 		return -1, err
 	}
 	return result, nil
+}
+
+type RankPerk struct {
+	Key         string
+	Requirement string
+	Value       bool
+}
+
+func (perk *RankPerk) toProto() *pb.Perk {
+	return &pb.Perk{Key: perk.Key, Requirement: perk.Requirement, Value: perk.Value}
+}
+
+type Perks []RankPerk
+
+var default_perks = map[string]RankPerk{
+	"VOTE_IN_COMPETITIONS": {
+		Key:         "VOTE_IN_COMPETITIONS",
+		Requirement: "requirement.unfulfilled.helper_level_2",
+		Value:       true,
+	},
+	"CALL_ON_HELPERS": {
+		Key:         "CALL_ON_HELPERS",
+		Requirement: "",
+		Value:       true,
+	},
+	"CITIZEN": {
+		Key:         "CITIZEN",
+		Requirement: "",
+		Value:       true,
+	},
+	"BUILDER_AT_WORK": {
+		Key:         "BUILDER_AT_WORK",
+		Requirement: "",
+		Value:       true,
+	},
+	"NAVIGATOR_PHASE_TWO_2014": {
+		Key:         "NAVIGATOR_PHASE_TWO_2014",
+		Requirement: "",
+		Value:       true,
+	},
+	"MOUSE_ZOOM": {
+		Key:         "MOUSE_ZOOM",
+		Requirement: "",
+		Value:       true,
+	},
+	"NAVIGATOR_THUMBNAIL_CAMERA": {
+		Key:         "NAVIGATOR_THUMBNAIL_CAMERA",
+		Requirement: "",
+		Value:       true,
+	},
+	"HABBO_CLUB_OFFER_BETA": {
+		Key:         "HABBO_CLUB_OFFER_BETA",
+		Requirement: "",
+		Value:       true,
+	},
+	"TRADE": {
+		Key:         "TRADE",
+		Requirement: "requirement.unfulfilled.no_trade_lock",
+		Value:       true,
+	},
+}
+var perks = []string{"acc_helper_use_guide_tool", "acc_helper_give_guide_tours", "acc_helper_judge_chat_reviews", "acc_floorplan_editor", "acc_camera"}
+var perk_reqs = []string{"requirement.unfulfilled.helper_level_4", "", "requirement.unfulfilled.helper_level_6", "requirement.unfulfilled.feature_disabled", ""}
+
+func (data *Database) getRankDynamicPerks(rankId int) ([]RankPerk, error) {
+	result := make([]RankPerk, 0)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	perms, err := data.rdb.HMGet(ctx, fmt.Sprintf("rank:%d", rankId), perks...).Result()
+	if err != nil {
+		return nil, err
+	}
+	for idx := range perms {
+		result = append(result, RankPerk{
+			Key:         perks[idx],
+			Requirement: perk_reqs[idx],
+			Value:       perms[idx] == "1",
+		})
+	}
+	return result, nil
+}
+
+func (ps Perks) toProto() *pb.RankPerks {
+	result := make([]*pb.Perk, len(ps))
+	for idx := range ps {
+		result[idx] = ps[idx].toProto()
+	}
+	return &pb.RankPerks{Elements: result}
+}
+
+func (data *Database) GetRankPerks(rankId int) (Perks, error) {
+	res, err := data.getRankDynamicPerks(rankId)
+	if err != nil {
+		return nil, err
+	}
+	return Perks{
+		res[0], res[1], res[2],
+		default_perks["VOTE_IN_COMPETITIONS"],
+		default_perks["CALL_ON_HELPERS"],
+		default_perks["CITIZEN"],
+		default_perks["TRADE"],
+		res[3],
+		default_perks["BUILDER_AT_WORK"],
+		default_perks["CALL_ON_HELPERS"],
+		res[4],
+		default_perks["NAVIGATOR_PHASE_TWO_2014"],
+		default_perks["MOUSE_ZOOM"],
+		default_perks["NAVIGATOR_ROOM_THUMBNAIL_CAMERA"],
+		default_perks["HABBO_CLUB_OFFER_BETA"],
+	}, nil
 }

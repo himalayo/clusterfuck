@@ -79,6 +79,16 @@ func (n *PermissionsClient) GetRankLevel(rankId int) *pb.Level {
 	return out
 }
 
+func (n *PermissionsClient) GetRankPerks(rankId int) *pb.RankPerks {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	out, err := n.client.GetRankPerks(ctx, &pb.RankId{Id: int32(rankId)})
+	if err != nil {
+		return nil
+	}
+	return out
+}
+
 func (n *PermissionsClient) Listen(addr string) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

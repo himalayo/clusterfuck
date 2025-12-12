@@ -30,8 +30,22 @@ func (n *PlayerClient) sendLoginRequest(ticket *pb.Ticket) bool {
 	return ok.Success
 }
 
+func (n *PlayerClient) sendUserDataRequest(ticket *pb.Ticket) *pb.UserData {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	ok, err := n.client.GetUserData(ctx, ticket)
+	if err != nil {
+		return nil
+	}
+	return ok
+}
+
 func (n *PlayerClient) LoginRequest(sso string) {
 	n.loginRequest <- sso
+}
+
+func (n *PlayerClient) GetUserData(sso string) *pb.UserData {
+	return n.sendUserDataRequest(&pb.Ticket{Sso: sso})
 }
 
 func (n *PlayerClient) Listen(addr string) {

@@ -109,6 +109,98 @@ func (x *LoginStatus) GetSuccess() bool {
 	return false
 }
 
+type UserData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Look          string                 `protobuf:"bytes,3,opt,name=look,proto3" json:"look,omitempty"`
+	AuthTicket    string                 `protobuf:"bytes,4,opt,name=auth_ticket,json=authTicket,proto3" json:"auth_ticket,omitempty"`
+	Motto         string                 `protobuf:"bytes,5,opt,name=motto,proto3" json:"motto,omitempty"`
+	HomeRoom      int32                  `protobuf:"varint,6,opt,name=home_room,json=homeRoom,proto3" json:"home_room,omitempty"`
+	Rank          int32                  `protobuf:"varint,7,opt,name=rank,proto3" json:"rank,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserData) Reset() {
+	*x = UserData{}
+	mi := &file_player_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserData) ProtoMessage() {}
+
+func (x *UserData) ProtoReflect() protoreflect.Message {
+	mi := &file_player_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserData.ProtoReflect.Descriptor instead.
+func (*UserData) Descriptor() ([]byte, []int) {
+	return file_player_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UserData) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UserData) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UserData) GetLook() string {
+	if x != nil {
+		return x.Look
+	}
+	return ""
+}
+
+func (x *UserData) GetAuthTicket() string {
+	if x != nil {
+		return x.AuthTicket
+	}
+	return ""
+}
+
+func (x *UserData) GetMotto() string {
+	if x != nil {
+		return x.Motto
+	}
+	return ""
+}
+
+func (x *UserData) GetHomeRoom() int32 {
+	if x != nil {
+		return x.HomeRoom
+	}
+	return 0
+}
+
+func (x *UserData) GetRank() int32 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
 var File_player_proto protoreflect.FileDescriptor
 
 const file_player_proto_rawDesc = "" +
@@ -117,9 +209,19 @@ const file_player_proto_rawDesc = "" +
 	"\x06Ticket\x12\x10\n" +
 	"\x03sso\x18\x01 \x01(\tR\x03sso\"'\n" +
 	"\vLoginStatus\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2>\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xb2\x01\n" +
+	"\bUserData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
+	"\x04look\x18\x03 \x01(\tR\x04look\x12\x1f\n" +
+	"\vauth_ticket\x18\x04 \x01(\tR\n" +
+	"authTicket\x12\x14\n" +
+	"\x05motto\x18\x05 \x01(\tR\x05motto\x12\x1b\n" +
+	"\thome_room\x18\x06 \x01(\x05R\bhomeRoom\x12\x12\n" +
+	"\x04rank\x18\a \x01(\x05R\x04rank2q\n" +
 	"\x06Player\x124\n" +
-	"\vLoginPlayer\x12\x0e.player.Ticket\x1a\x13.player.LoginStatus\"\x00B.Z,github.com/himalayo/clusterfuck/player/protob\x06proto3"
+	"\vLoginPlayer\x12\x0e.player.Ticket\x1a\x13.player.LoginStatus\"\x00\x121\n" +
+	"\vGetUserData\x12\x0e.player.Ticket\x1a\x10.player.UserData\"\x00B.Z,github.com/himalayo/clusterfuck/player/protob\x06proto3"
 
 var (
 	file_player_proto_rawDescOnce sync.Once
@@ -133,16 +235,19 @@ func file_player_proto_rawDescGZIP() []byte {
 	return file_player_proto_rawDescData
 }
 
-var file_player_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_player_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_player_proto_goTypes = []any{
 	(*Ticket)(nil),      // 0: player.Ticket
 	(*LoginStatus)(nil), // 1: player.LoginStatus
+	(*UserData)(nil),    // 2: player.UserData
 }
 var file_player_proto_depIdxs = []int32{
 	0, // 0: player.Player.LoginPlayer:input_type -> player.Ticket
-	1, // 1: player.Player.LoginPlayer:output_type -> player.LoginStatus
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 1: player.Player.GetUserData:input_type -> player.Ticket
+	1, // 2: player.Player.LoginPlayer:output_type -> player.LoginStatus
+	2, // 3: player.Player.GetUserData:output_type -> player.UserData
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -159,7 +264,7 @@ func file_player_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_player_proto_rawDesc), len(file_player_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

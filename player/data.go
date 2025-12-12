@@ -1,24 +1,45 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
 )
 
 type UserData struct {
-	Id         int
-	Username   string
-	AuthTicket string
-	Look       string
-	Motto      string
-	HomeRoom   int
-	Rank       int
+	Id         int    `redis:"id"`
+	Username   string `redis:"username"`
+	AuthTicket string `redis:"auth_ticket"`
+	Look       string `redis:"look"`
+	Motto      string `redis:"motto"`
+	HomeRoom   int    `redis:"home_room"`
+	Rank       int    `redis:"rank"`
+}
+
+type UserRespectData struct {
+	RespectsReceived      int
+	RespectsGiven         int
+	DailyPetRespectPoints int
+}
+
+type UserInfoComposerData struct {
+	Id                    int
+	Username              string
+	AuthTicket            string
+	Look                  string
+	Motto                 string
+	RespectsReceived      int
+	RespectsGiven         int
+	DailyPetRespectPoints int
+	AllowNameChange       bool
 }
 
 func (u *UserData) String() string {
@@ -112,14 +133,80 @@ func (data *Database) UserEffectsEvent(id int) {
 	data.effects <- id
 }
 
+func (data *Database) loadUserInfoComposerData(sso string) *UserInfoComposerData {
+	var curr_data UserInfoComposerData
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		userData := data.loadUserData(sso)
+		curr_data.Id = userData.Id
+		curr_data.Username = userData.Username
+		curr_data.AuthTicket = userData.AuthTicket
+		curr_data.Look = userData.Look
+		curr_data.Motto = userData.Motto
+	})
+	wg.Go(func() {
+		respectData := data.loadUserRespectData(sso)
+		curr_data.RespectsGiven = respectData.RespectsGiven
+		curr_data.RespectsReceived = respectData.RespectsReceived
+		curr_data.DailyPetRespectPoints = respectData.DailyPetRespectPoints
+	})
+	wg.Go(func() {
+		canChangeUsername := data.loadUserCanChangeName(sso)
+		curr_data.AllowNameChange = canChangeUsername
+	})
+	wg.Wait()
+
+	return &curr_data
+}
+
+func (data *Database) loadUserCanChangeName(_ string) bool {
+	return true
+}
+
+func (data *Database) loadUserRespectData(sso string) *UserRespectData {
+	var out UserRespectData
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err := data.cache.HGetAll(ctx, fmt.Sprintf("respect:%s", sso)).Scan(&out)
+	if err == nil {
+		return &out
+	}
+
+	row := data.db.QueryRow("SELECT `respects_received`, `respects_given`, `daily_pet_respect_points` FROM user_settings WHERE users.auth_ticket = ? INNER JOIN users ON users.id = user_settings.user_id")
+	if err := row.Scan(&out.RespectsReceived, &out.RespectsGiven, &out.DailyPetRespectPoints); err != nil {
+		log.Printf("Database.loadUserRespectData: could not load UserRespectData: %s", err)
+		return nil
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		data.cache.HSet(ctx, fmt.Sprintf("respect:%s", sso), out)
+	}()
+
+	return &out
+}
+
 func (data *Database) loadUserData(sso string) *UserData {
 	log.Printf("Database.loadUserData: loading UserData: %s", sso)
-	row := data.db.QueryRow("SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank` FROM users WHERE auth_ticket = ?", sso)
 	var curr_data UserData
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err := data.cache.HGetAll(ctx, fmt.Sprintf("user:%s", sso)).Scan(&curr_data)
+	if err == nil {
+		return &curr_data
+	}
+
+	row := data.db.QueryRow("SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank` FROM users WHERE auth_ticket = ?", sso)
 	if err := row.Scan(&curr_data.Id, &curr_data.Username, &curr_data.AuthTicket, &curr_data.Look, &curr_data.Motto, &curr_data.HomeRoom, &curr_data.Rank); err != nil {
 		log.Printf("Database.loadUserData: could not load UserData: %s", err)
 		return nil
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		data.cache.HSet(ctx, fmt.Sprintf("user:%s", sso), curr_data)
+	}()
+
 	log.Printf("Loaded UserData: %s", curr_data.String())
 	return &curr_data
 }

@@ -25,6 +25,7 @@ const (
 	Permissions_GetAllRanks_FullMethodName     = "/permission.Permissions/GetAllRanks"
 	Permissions_GetPermission_FullMethodName   = "/permission.Permissions/GetPermission"
 	Permissions_GetRankLevel_FullMethodName    = "/permission.Permissions/GetRankLevel"
+	Permissions_GetRankPerks_FullMethodName    = "/permission.Permissions/GetRankPerks"
 )
 
 // PermissionsClient is the client API for Permissions service.
@@ -37,6 +38,7 @@ type PermissionsClient interface {
 	GetAllRanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RankList, error)
 	GetPermission(ctx context.Context, in *RankPermission, opts ...grpc.CallOption) (*Permission, error)
 	GetRankLevel(ctx context.Context, in *RankId, opts ...grpc.CallOption) (*Level, error)
+	GetRankPerks(ctx context.Context, in *RankId, opts ...grpc.CallOption) (*RankPerks, error)
 }
 
 type permissionsClient struct {
@@ -107,6 +109,16 @@ func (c *permissionsClient) GetRankLevel(ctx context.Context, in *RankId, opts .
 	return out, nil
 }
 
+func (c *permissionsClient) GetRankPerks(ctx context.Context, in *RankId, opts ...grpc.CallOption) (*RankPerks, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RankPerks)
+	err := c.cc.Invoke(ctx, Permissions_GetRankPerks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PermissionsServer is the server API for Permissions service.
 // All implementations must embed UnimplementedPermissionsServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type PermissionsServer interface {
 	GetAllRanks(context.Context, *Empty) (*RankList, error)
 	GetPermission(context.Context, *RankPermission) (*Permission, error)
 	GetRankLevel(context.Context, *RankId) (*Level, error)
+	GetRankPerks(context.Context, *RankId) (*RankPerks, error)
 	mustEmbedUnimplementedPermissionsServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedPermissionsServer) GetPermission(context.Context, *RankPermis
 }
 func (UnimplementedPermissionsServer) GetRankLevel(context.Context, *RankId) (*Level, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRankLevel not implemented")
+}
+func (UnimplementedPermissionsServer) GetRankPerks(context.Context, *RankId) (*RankPerks, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRankPerks not implemented")
 }
 func (UnimplementedPermissionsServer) mustEmbedUnimplementedPermissionsServer() {}
 func (UnimplementedPermissionsServer) testEmbeddedByValue()                     {}
@@ -274,6 +290,24 @@ func _Permissions_GetRankLevel_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Permissions_GetRankPerks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RankId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PermissionsServer).GetRankPerks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Permissions_GetRankPerks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PermissionsServer).GetRankPerks(ctx, req.(*RankId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Permissions_ServiceDesc is the grpc.ServiceDesc for Permissions service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var Permissions_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRankLevel",
 			Handler:    _Permissions_GetRankLevel_Handler,
+		},
+		{
+			MethodName: "GetRankPerks",
+			Handler:    _Permissions_GetRankPerks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

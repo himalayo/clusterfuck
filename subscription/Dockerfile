@@ -1,4 +1,4 @@
-FROM golang:1.24
+FROM golang:1.25.5
 WORKDIR /usr/src/clusterfuck
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change

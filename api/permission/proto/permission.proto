@@ -11,6 +11,7 @@ service Permissions {
 	rpc GetAllRanks (Empty) returns (RankList) {}
 	rpc GetPermission (RankPermission) returns (Permission) {}
 	rpc GetRankLevel (RankId) returns (Level) {}
+	rpc GetRankPerks (RankId) returns (RankPerks) {}
 }
 
 message Empty {}
@@ -66,4 +67,14 @@ message Rank {
 	int32 credits_timer_amount = 12;
 	int32 pixels_timer_amount = 13;
 	int32 gotw_timer_amount = 14;
+}
+
+message Perk {
+	string key = 1;
+	string requirement = 2;
+	bool value = 3;
+}
+
+message RankPerks {
+	repeated Perk elements = 1;
 }

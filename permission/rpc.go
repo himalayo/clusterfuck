@@ -81,8 +81,27 @@ func (s *server) GetRankLevel(_ context.Context, in *pb.RankId) (*pb.Level, erro
 	return &pb.Level{Level: int32(result)}, nil
 }
 
+func (s *server) GetRankPerks(_ context.Context, in *pb.RankId) (*pb.RankPerks, error) {
+	result, err := s.data.GetRankPerks(int(in.Id))
+	if err != nil {
+		return nil, err
+	}
+	return result.toProto(), nil
+}
+
+func StartIncoming(addr string) {
+	hostname, portString, _ := strings.Cut(addr, ":")
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		port = *serverPort
+	}
+	go Incoming.Serve(port + 500)
+	go Incoming.RequestConnection(fmt.Sprintf("%s:%d", hostname, port+500), Net)
+}
+
 func StartServer(data *Database) {
-	_, portString, _ := strings.Cut(os.Getenv("PERMISSION_HOST"), ":")
+	addr := os.Getenv("PERMISSION_HOST")
+	_, portString, _ := strings.Cut(addr, ":")
 	port, err := strconv.Atoi(portString)
 	if err != nil {
 		port = *serverPort
@@ -93,6 +112,7 @@ func StartServer(data *Database) {
 	}
 	s := grpc.NewServer()
 	pb.RegisterPermissionsServer(s, &server{data: data})
+	go StartIncoming(addr)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

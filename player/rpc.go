@@ -18,6 +18,18 @@ var (
 	serverPort = flag.Int("grpc_port", 50053, "gRPC server port")
 )
 
+func (u *UserData) toProto() *pb.UserData {
+	return &pb.UserData{
+		Id:         int32(u.Id),
+		Username:   u.Username,
+		Look:       u.Look,
+		AuthTicket: u.AuthTicket,
+		Motto:      u.Motto,
+		HomeRoom:   int32(u.HomeRoom),
+		Rank:       int32(u.Rank),
+	}
+}
+
 type server struct {
 	pb.UnimplementedPlayerServer
 	events *EventListener
@@ -25,6 +37,10 @@ type server struct {
 
 func (s *server) LoginPlayer(_ context.Context, sso *pb.Ticket) (*pb.LoginStatus, error) {
 	return &pb.LoginStatus{Success: s.events.Login(sso)}, nil
+}
+
+func (s *server) GetUserData(_ context.Context, sso *pb.Ticket) (*pb.UserData, error) {
+	return s.events.data.loadUserData(sso.GetSso()).toProto(), nil
 }
 
 func StartIncoming(addr string) {

@@ -578,6 +578,110 @@ func (x *Rank) GetGotwTimerAmount() int32 {
 	return 0
 }
 
+type Perk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Requirement   string                 `protobuf:"bytes,2,opt,name=requirement,proto3" json:"requirement,omitempty"`
+	Value         bool                   `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Perk) Reset() {
+	*x = Perk{}
+	mi := &file_permission_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Perk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Perk) ProtoMessage() {}
+
+func (x *Perk) ProtoReflect() protoreflect.Message {
+	mi := &file_permission_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Perk.ProtoReflect.Descriptor instead.
+func (*Perk) Descriptor() ([]byte, []int) {
+	return file_permission_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Perk) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Perk) GetRequirement() string {
+	if x != nil {
+		return x.Requirement
+	}
+	return ""
+}
+
+func (x *Perk) GetValue() bool {
+	if x != nil {
+		return x.Value
+	}
+	return false
+}
+
+type RankPerks struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Elements      []*Perk                `protobuf:"bytes,1,rep,name=elements,proto3" json:"elements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RankPerks) Reset() {
+	*x = RankPerks{}
+	mi := &file_permission_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RankPerks) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RankPerks) ProtoMessage() {}
+
+func (x *RankPerks) ProtoReflect() protoreflect.Message {
+	mi := &file_permission_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RankPerks.ProtoReflect.Descriptor instead.
+func (*RankPerks) Descriptor() ([]byte, []int) {
+	return file_permission_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RankPerks) GetElements() []*Perk {
+	if x != nil {
+		return x.Elements
+	}
+	return nil
+}
+
 var File_permission_proto protoreflect.FileDescriptor
 
 const file_permission_proto_rawDesc = "" +
@@ -626,20 +730,27 @@ const file_permission_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x16.permission.PermissionR\x05value:\x028\x01\x1a<\n" +
 	"\x0eVariablesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*@\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"P\n" +
+	"\x04Perk\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +
+	"\vrequirement\x18\x02 \x01(\tR\vrequirement\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\bR\x05value\"9\n" +
+	"\tRankPerks\x12,\n" +
+	"\belements\x18\x01 \x03(\v2\x10.permission.PerkR\belements*@\n" +
 	"\x11PermissionSetting\x12\x0e\n" +
 	"\n" +
 	"DISALLOWED\x10\x00\x12\v\n" +
 	"\aALLOWED\x10\x01\x12\x0e\n" +
 	"\n" +
-	"ROOM_OWNER\x10\x022\xf6\x02\n" +
+	"ROOM_OWNER\x10\x022\xb3\x03\n" +
 	"\vPermissions\x121\n" +
 	"\aGetRank\x12\x12.permission.RankId\x1a\x10.permission.Rank\"\x00\x129\n" +
 	"\rGetRankByName\x12\x14.permission.RankName\x1a\x10.permission.Rank\"\x00\x12?\n" +
 	"\x0fCheckRankExists\x12\x12.permission.RankId\x1a\x16.permission.RankExists\"\x00\x128\n" +
 	"\vGetAllRanks\x12\x11.permission.Empty\x1a\x14.permission.RankList\"\x00\x12E\n" +
 	"\rGetPermission\x12\x1a.permission.RankPermission\x1a\x16.permission.Permission\"\x00\x127\n" +
-	"\fGetRankLevel\x12\x12.permission.RankId\x1a\x11.permission.Level\"\x00B4Z2github.com/himalayo/clusterfuck/subscription/protob\x06proto3"
+	"\fGetRankLevel\x12\x12.permission.RankId\x1a\x11.permission.Level\"\x00\x12;\n" +
+	"\fGetRankPerks\x12\x12.permission.RankId\x1a\x15.permission.RankPerks\"\x00B4Z2github.com/himalayo/clusterfuck/subscription/protob\x06proto3"
 
 var (
 	file_permission_proto_rawDescOnce sync.Once
@@ -654,7 +765,7 @@ func file_permission_proto_rawDescGZIP() []byte {
 }
 
 var file_permission_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_permission_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_permission_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_permission_proto_goTypes = []any{
 	(PermissionSetting)(0), // 0: permission.PermissionSetting
 	(*Empty)(nil),          // 1: permission.Empty
@@ -666,32 +777,37 @@ var file_permission_proto_goTypes = []any{
 	(*Permission)(nil),     // 7: permission.Permission
 	(*RankList)(nil),       // 8: permission.RankList
 	(*Rank)(nil),           // 9: permission.Rank
-	nil,                    // 10: permission.Rank.PermissionsEntry
-	nil,                    // 11: permission.Rank.VariablesEntry
+	(*Perk)(nil),           // 10: permission.Perk
+	(*RankPerks)(nil),      // 11: permission.RankPerks
+	nil,                    // 12: permission.Rank.PermissionsEntry
+	nil,                    // 13: permission.Rank.VariablesEntry
 }
 var file_permission_proto_depIdxs = []int32{
 	0,  // 0: permission.Permission.setting:type_name -> permission.PermissionSetting
 	9,  // 1: permission.RankList.elements:type_name -> permission.Rank
-	10, // 2: permission.Rank.permissions:type_name -> permission.Rank.PermissionsEntry
-	11, // 3: permission.Rank.variables:type_name -> permission.Rank.VariablesEntry
-	7,  // 4: permission.Rank.PermissionsEntry.value:type_name -> permission.Permission
-	6,  // 5: permission.Permissions.GetRank:input_type -> permission.RankId
-	5,  // 6: permission.Permissions.GetRankByName:input_type -> permission.RankName
-	6,  // 7: permission.Permissions.CheckRankExists:input_type -> permission.RankId
-	1,  // 8: permission.Permissions.GetAllRanks:input_type -> permission.Empty
-	3,  // 9: permission.Permissions.GetPermission:input_type -> permission.RankPermission
-	6,  // 10: permission.Permissions.GetRankLevel:input_type -> permission.RankId
-	9,  // 11: permission.Permissions.GetRank:output_type -> permission.Rank
-	9,  // 12: permission.Permissions.GetRankByName:output_type -> permission.Rank
-	4,  // 13: permission.Permissions.CheckRankExists:output_type -> permission.RankExists
-	8,  // 14: permission.Permissions.GetAllRanks:output_type -> permission.RankList
-	7,  // 15: permission.Permissions.GetPermission:output_type -> permission.Permission
-	2,  // 16: permission.Permissions.GetRankLevel:output_type -> permission.Level
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	12, // 2: permission.Rank.permissions:type_name -> permission.Rank.PermissionsEntry
+	13, // 3: permission.Rank.variables:type_name -> permission.Rank.VariablesEntry
+	10, // 4: permission.RankPerks.elements:type_name -> permission.Perk
+	7,  // 5: permission.Rank.PermissionsEntry.value:type_name -> permission.Permission
+	6,  // 6: permission.Permissions.GetRank:input_type -> permission.RankId
+	5,  // 7: permission.Permissions.GetRankByName:input_type -> permission.RankName
+	6,  // 8: permission.Permissions.CheckRankExists:input_type -> permission.RankId
+	1,  // 9: permission.Permissions.GetAllRanks:input_type -> permission.Empty
+	3,  // 10: permission.Permissions.GetPermission:input_type -> permission.RankPermission
+	6,  // 11: permission.Permissions.GetRankLevel:input_type -> permission.RankId
+	6,  // 12: permission.Permissions.GetRankPerks:input_type -> permission.RankId
+	9,  // 13: permission.Permissions.GetRank:output_type -> permission.Rank
+	9,  // 14: permission.Permissions.GetRankByName:output_type -> permission.Rank
+	4,  // 15: permission.Permissions.CheckRankExists:output_type -> permission.RankExists
+	8,  // 16: permission.Permissions.GetAllRanks:output_type -> permission.RankList
+	7,  // 17: permission.Permissions.GetPermission:output_type -> permission.Permission
+	2,  // 18: permission.Permissions.GetRankLevel:output_type -> permission.Level
+	11, // 19: permission.Permissions.GetRankPerks:output_type -> permission.RankPerks
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_permission_proto_init() }
@@ -705,7 +821,7 @@ func file_permission_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_permission_proto_rawDesc), len(file_permission_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

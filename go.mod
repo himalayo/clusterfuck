@@ -1,6 +1,6 @@
 module github.com/himalayo/clusterfuck
 
-go 1.24.4
+go 1.25
 
 require (
 	github.com/go-sql-driver/mysql v1.9.3

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Player_LoginPlayer_FullMethodName = "/player.Player/LoginPlayer"
+	Player_GetUserData_FullMethodName = "/player.Player/GetUserData"
 )
 
 // PlayerClient is the client API for Player service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PlayerClient interface {
 	LoginPlayer(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*LoginStatus, error)
+	GetUserData(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*UserData, error)
 }
 
 type playerClient struct {
@@ -47,11 +49,22 @@ func (c *playerClient) LoginPlayer(ctx context.Context, in *Ticket, opts ...grpc
 	return out, nil
 }
 
+func (c *playerClient) GetUserData(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*UserData, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserData)
+	err := c.cc.Invoke(ctx, Player_GetUserData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PlayerServer is the server API for Player service.
 // All implementations must embed UnimplementedPlayerServer
 // for forward compatibility.
 type PlayerServer interface {
 	LoginPlayer(context.Context, *Ticket) (*LoginStatus, error)
+	GetUserData(context.Context, *Ticket) (*UserData, error)
 	mustEmbedUnimplementedPlayerServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPlayerServer struct{}
 
 func (UnimplementedPlayerServer) LoginPlayer(context.Context, *Ticket) (*LoginStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginPlayer not implemented")
+}
+func (UnimplementedPlayerServer) GetUserData(context.Context, *Ticket) (*UserData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserData not implemented")
 }
 func (UnimplementedPlayerServer) mustEmbedUnimplementedPlayerServer() {}
 func (UnimplementedPlayerServer) testEmbeddedByValue()                {}
@@ -104,6 +120,24 @@ func _Player_LoginPlayer_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Player_GetUserData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Ticket)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayerServer).GetUserData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Player_GetUserData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayerServer).GetUserData(ctx, req.(*Ticket))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Player_ServiceDesc is the grpc.ServiceDesc for Player service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var Player_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginPlayer",
 			Handler:    _Player_LoginPlayer_Handler,
+		},
+		{
+			MethodName: "GetUserData",
+			Handler:    _Player_GetUserData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
