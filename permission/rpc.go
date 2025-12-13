@@ -76,8 +76,10 @@ func (s *server) GetPermission(_ context.Context, in *pb.RankPermission) (*pb.Pe
 func (s *server) GetRankLevel(_ context.Context, in *pb.RankId) (*pb.Level, error) {
 	result, err := s.data.GetRankLevel(int(in.Id))
 	if err != nil {
+		log.Printf("GetRankLevel(%d): got error: %v", in.Id, err)
 		return nil, err
 	}
+	log.Printf("GetRankLevel(%d): %d", in.Id, result)
 	return &pb.Level{Level: int32(result)}, nil
 }
 

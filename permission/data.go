@@ -292,9 +292,9 @@ func (data *Database) GetAllRanks() ([]Rank, error) {
 	defer cancel()
 	var cursor uint64
 	var err error
-	ch := make(chan *Rank)
 	var wg sync.WaitGroup
 	for {
+		ch := make(chan *Rank)
 		var keysFromScan []string
 		keysFromScan, cursor, err = data.rdb.ScanType(ctx, cursor, "rank:*", 10, "hash").Result()
 		if err != nil {
@@ -306,6 +306,7 @@ func (data *Database) GetAllRanks() ([]Rank, error) {
 			go func() {
 				res, err := data.getRankFromCache(keysFromScan[i])
 				if err == nil {
+					log.Printf("GetAllRanks(): Loaded rank %s from cache successfuly", keysFromScan[i])
 					ch <- res
 				}
 				wg.Done()

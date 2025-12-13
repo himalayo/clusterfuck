@@ -191,9 +191,15 @@ func (data *Database) loadUserData(sso string) *UserData {
 	var curr_data UserData
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	err := data.cache.HGetAll(ctx, fmt.Sprintf("user:%s", sso)).Scan(&curr_data)
-	if err == nil {
-		return &curr_data
+	vals, err := data.cache.Exists(ctx, fmt.Sprintf("user:%s", sso)).Result()
+	if err != nil {
+		if vals != 0 {
+			err := data.cache.HGetAll(ctx, fmt.Sprintf("user:%s", sso)).Scan(&curr_data)
+			if err == nil {
+				log.Printf("%s", curr_data.String())
+				return &curr_data
+			}
+		}
 	}
 
 	row := data.db.QueryRow("SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank` FROM users WHERE auth_ticket = ?", sso)

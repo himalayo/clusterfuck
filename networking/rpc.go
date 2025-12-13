@@ -93,6 +93,7 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 					if c.sso == "" {
 						return
 					}
+					log.Printf("%d: Sending to application: %s", headers[i], in.Application)
 					go func() {
 						lis.Send(c.sso, packet)
 					}()

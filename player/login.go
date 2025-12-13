@@ -54,8 +54,8 @@ func sendUserPermissions(event *LoginEvent) []byte {
 	if event.Subscription.UserHasSubscription(event.UserData.Id, "HABBO_CLUB") {
 		clubLevel = 2
 	}
-	permissionLevel := int(event.Permission.GetRankLevel(event.UserData.Rank).Level)
-	hasAmbassador := event.Permission.GetPermission(event.UserData.Rank, "acc_ambassador").Setting == 1
+	permissionLevel := int(event.Permission.GetRankLevel(event.UserData.Rank).GetLevel())
+	hasAmbassador := event.Permission.GetPermission(event.UserData.Rank, "acc_ambassador").GetSetting() == 1
 	log.Printf("sendUserPermissions: %d", permissionLevel)
 	return UserPermissionsComposer(clubLevel, permissionLevel, hasAmbassador)
 }
