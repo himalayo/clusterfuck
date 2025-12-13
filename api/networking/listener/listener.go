@@ -57,12 +57,9 @@ func (n *Listener) Listen(addr string) error {
 func (n *Listener) ListenWithConnection(conn *grpc.ClientConn) {
 	defer conn.Close()
 	c := pb.NewIncomingListenerClient(conn)
-	for {
-		select {
-		case req := <-n.packet:
-			go func() {
-				req.result <- n.sendData(c, req.packet)
-			}()
-		}
+	for req := range n.packet {
+		go func() {
+			req.result <- n.sendData(c, req.packet)
+		}()
 	}
 }

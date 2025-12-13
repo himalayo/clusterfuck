@@ -80,33 +80,44 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 			})
 		}
 	} else {
-		app, ok := Applications[in.Application]
+		_, ok := Applications[in.Application]
 		if !ok {
-			app = &application{
+			app := &application{
 				addresses: []string{addr},
 				headers:   headers,
 			}
 			Applications[in.Application] = app
 			AddressToApplication[addr] = app
+			for i := range headers {
+				handler_id := RegisterHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
+					if c.sso == "" {
+						return
+					}
+					go func() {
+						lis.Send(c.sso, packet)
+					}()
+				})
+				lis.HandlerIds = append(lis.HandlerIds, handler_id)
+				ApplicationsHeaders[int16(headers[i])] = append(ApplicationsHeaders[int16(headers[i])], app)
+			}
+		} else {
+			return &pb.SuccessMessage{Successful: true}, nil
 		}
-		for i := range headers {
-			handler_id := RegisterHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
-				if c.sso == "" {
-					return
-				}
-				app := Applications[in.Application].addresses
-				if addr != app[0] {
-					return
-				}
-				go func() {
-					lis.Send(c.sso, packet)
-				}()
-			})
-			lis.HandlerIds = append(lis.HandlerIds, handler_id)
-			ApplicationsHeaders[int16(headers[i])] = append(ApplicationsHeaders[int16(headers[i])], app)
+		ResolverManager.AddAddress(addr, in.Application)
+		addr = fmt.Sprintf("clusterfuck:///%s", in.Application)
+		conn, err := grpc.NewClient(
+			addr,
+			grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return &pb.SuccessMessage{Successful: false}, nil
 		}
-	}
+		go lis.ListenWithConnection(conn)
+		log.Printf("Successfully established connection with: %s (application: %s) for headers: %v", addr, in.Application, headers)
 
+		return &pb.SuccessMessage{Successful: true}, nil
+	}
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return &pb.SuccessMessage{Successful: false}, nil

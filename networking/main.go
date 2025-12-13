@@ -36,3 +36,7 @@ func main() {
 	})
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
+
+func init() {
+	initResolving()
+}

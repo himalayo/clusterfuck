@@ -13,8 +13,9 @@ type handler struct {
 
 func NewHandlerManager() *HandlerManager {
 	return &HandlerManager{
-		count:    0,
-		handlers: make(map[int16][]handler),
+		count:             0,
+		handlers:          make(map[int16][]handler),
+		handlerIdtoHeader: make(map[int]int16),
 	}
 }
 
