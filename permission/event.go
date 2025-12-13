@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 func (p RankPerk) Serialize() []byte {
 	return serializeValues(p.Key, p.Requirement, p.Value)
 }
@@ -30,6 +32,7 @@ func handleUserDataRequest(sso string, _ []byte) {
 	if err != nil {
 		return
 	}
+	log.Printf("Sending RankPerks to: %s", sso)
 	Net.Send(sso, UserPerksComposer(perks))
 }
 

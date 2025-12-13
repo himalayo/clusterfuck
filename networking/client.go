@@ -73,6 +73,7 @@ func (c *Client) write() {
 		if err != nil {
 			return
 		}
+		log.Printf("Sending to: %s %d", c.sso, ParseMessage(message).header)
 		w.Write(message)
 		numMessages := len(c.send)
 		for i := 0; i < numMessages; i++ {

@@ -42,6 +42,10 @@ type UserInfoComposerData struct {
 	AllowNameChange       bool
 }
 
+func (u *UserInfoComposerData) String() string {
+	return fmt.Sprintf("{id: %d, username: %s, auth_ticket: %s, look: %s, motto: %s, respects_received: %d, respects_given: %d, daily_pet_respect_points: %d, allow_name_change: %v}", u.Id, u.Username, u.AuthTicket, u.Look, u.Motto, u.RespectsReceived, u.RespectsGiven, u.DailyPetRespectPoints, u.AllowNameChange)
+}
+
 func (u *UserData) String() string {
 	return fmt.Sprintf("{id: %d, username: %s, auth_ticket: %s, look: %s, motto: %s, home_room: %d}", u.Id, u.Username, u.AuthTicket, u.Look, u.Motto, u.HomeRoom)
 }
@@ -167,12 +171,17 @@ func (data *Database) loadUserRespectData(sso string) *UserRespectData {
 	var out UserRespectData
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	err := data.cache.HGetAll(ctx, fmt.Sprintf("respect:%s", sso)).Scan(&out)
-	if err == nil {
-		return &out
+	vals, err := data.cache.Exists(ctx, fmt.Sprintf("respect:%s", sso)).Result()
+	if err != nil {
+		if vals != 0 {
+			err := data.cache.HGetAll(ctx, fmt.Sprintf("respect:%s", sso)).Scan(&out)
+			if err == nil {
+				return &out
+			}
+		}
 	}
 
-	row := data.db.QueryRow("SELECT `respects_received`, `respects_given`, `daily_pet_respect_points` FROM user_settings WHERE users.auth_ticket = ? INNER JOIN users ON users.id = user_settings.user_id")
+	row := data.db.QueryRow("SELECT `respects_received`, `respects_given`, `daily_pet_respect_points` FROM users_settings INNER JOIN users ON users_settings.user_id = users.id WHERE users.auth_ticket = ?", sso)
 	if err := row.Scan(&out.RespectsReceived, &out.RespectsGiven, &out.DailyPetRespectPoints); err != nil {
 		log.Printf("Database.loadUserRespectData: could not load UserRespectData: %s", err)
 		return nil

@@ -60,7 +60,7 @@ func (e *EventListener) resultLoginEvent(playerData *UserData) {
 	event := e.newLoginEvent(playerData)
 	event.Send(e.loginHandlers[0](event))
 	for _, handler := range e.loginHandlers[1:] {
-		go func(event *LoginEvent, handler func(*LoginEvent) []byte) {
+		func(event *LoginEvent, handler func(*LoginEvent) []byte) {
 			event.Send(handler(event))
 		}(event, handler)
 	}
@@ -78,7 +78,9 @@ func (e *EventListener) Login(sso *pb.Ticket) bool {
 }
 
 func handleUserDataRequest(sso string, _ []byte) {
-	log.Printf("%s: HandleUserDataRequest called!", sso)
+	info := Data.loadUserInfoComposerData(sso)
+	log.Printf("%s: Sending UserDataComposer: %s", sso, info.String())
+	Net.Send(sso, UserDataComposer(info))
 }
 
 func RegisterIncomingHandlers() {

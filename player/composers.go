@@ -37,3 +37,7 @@ func BuildersClubExpiredComposer() []byte {
 func FavoriteRoomsCountComposer(maxFavoriteRooms int, favoriteRooms []int) []byte {
 	return compose(151, maxFavoriteRooms, len(favoriteRooms), serializeValues(favoriteRooms))
 }
+
+func UserDataComposer(info *UserInfoComposerData) []byte {
+	return compose(2725, info.Id, info.Username, info.Look, "M", info.Motto, info.Username, false, info.RespectsReceived, info.RespectsGiven, info.DailyPetRespectPoints, false, "01-01-1970 00:00:00", info.AllowNameChange, false)
+}
