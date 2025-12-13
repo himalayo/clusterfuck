@@ -16,7 +16,8 @@ type SendRequest struct {
 }
 
 type Listener struct {
-	packet chan SendRequest
+	packet     chan SendRequest
+	HandlerIds []int
 }
 
 func NewListener() *Listener {

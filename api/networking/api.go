@@ -21,14 +21,16 @@ type Packets struct {
 }
 
 type IncomingHandlerRequest struct {
-	address string
-	headers []int
+	address     string
+	headers     []int
+	application string
 }
 
 type NetworkingClient struct {
 	send          chan Packet
 	connect       chan IncomingHandlerRequest
 	send_multiple chan Packets
+	disconnect    chan IncomingHandlerRequest
 }
 
 func NewClient() *NetworkingClient {
@@ -72,8 +74,19 @@ func connectHandler(client pb.NetworkingClient, req *pb.IncomingInstance) bool {
 	return succ.Successful
 }
 
-func (n *NetworkingClient) ConnectHandler(address string, headers []int) {
-	n.connect <- IncomingHandlerRequest{address: address, headers: headers}
+func disconnectHandler(client pb.NetworkingClient, req *pb.IncomingInstance) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	succ, err := client.DisconnectIncomingListener(ctx, req)
+	if err != nil {
+		log.Printf("could not disconnect incoming message handler (headers: %v): %v", req.Headers, err)
+		return false
+	}
+	return succ.Successful
+}
+
+func (n *NetworkingClient) ConnectHandler(address string, headers []int, application string) {
+	n.connect <- IncomingHandlerRequest{address: address, headers: headers, application: application}
 }
 
 func (n *NetworkingClient) Send(sso string, data []byte) {
@@ -82,6 +95,10 @@ func (n *NetworkingClient) Send(sso string, data []byte) {
 
 func (n *NetworkingClient) SendMultiple(sso string, data [][]byte) {
 	n.send_multiple <- Packets{sso: sso, body: data}
+}
+
+func (n *NetworkingClient) DisconnectHandler(address string, application string) {
+	n.connect <- IncomingHandlerRequest{address: address, application: application}
 }
 
 func (n *NetworkingClient) Listen(addr string) {
@@ -109,7 +126,11 @@ func (n *NetworkingClient) Listen(addr string) {
 				for i := range request.headers {
 					headers[i] = int32(request.headers[i])
 				}
-				connectHandler(c, &pb.IncomingInstance{Address: request.address, Headers: headers})
+				connectHandler(c, &pb.IncomingInstance{Address: request.address, Headers: headers, Application: request.application})
+			}()
+		case request := <-n.disconnect:
+			go func() {
+				disconnectHandler(c, &pb.IncomingInstance{Address: request.address, Headers: nil, Application: request.application})
 			}()
 		}
 	}

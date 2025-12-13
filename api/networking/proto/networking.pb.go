@@ -25,6 +25,7 @@ type IncomingInstance struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	Headers       []int32                `protobuf:"varint,2,rep,packed,name=headers,proto3" json:"headers,omitempty"`
+	Application   string                 `protobuf:"bytes,3,opt,name=application,proto3" json:"application,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -71,6 +72,13 @@ func (x *IncomingInstance) GetHeaders() []int32 {
 		return x.Headers
 	}
 	return nil
+}
+
+func (x *IncomingInstance) GetApplication() string {
+	if x != nil {
+		return x.Application
+	}
+	return ""
 }
 
 type Packets struct {
@@ -234,10 +242,11 @@ var File_networking_proto protoreflect.FileDescriptor
 const file_networking_proto_rawDesc = "" +
 	"\n" +
 	"\x10networking.proto\x12\n" +
-	"networking\"F\n" +
+	"networking\"h\n" +
 	"\x10IncomingInstance\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x18\n" +
-	"\aheaders\x18\x02 \x03(\x05R\aheaders\"@\n" +
+	"\aheaders\x18\x02 \x03(\x05R\aheaders\x12 \n" +
+	"\vapplication\x18\x03 \x01(\tR\vapplication\"@\n" +
 	"\aPackets\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x18\n" +
 	"\apackets\x18\x02 \x03(\fR\apackets\"=\n" +
@@ -248,13 +257,14 @@ const file_networking_proto_rawDesc = "" +
 	"\n" +
 	"successful\x18\x01 \x01(\bR\n" +
 	"successful\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xe6\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xc0\x02\n" +
 	"\n" +
 	"Networking\x12>\n" +
 	"\n" +
 	"SendPacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00\x12@\n" +
 	"\vSendPackets\x12\x13.networking.Packets\x1a\x1a.networking.SuccessMessage\"\x00\x12V\n" +
-	"\x18RegisterIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x002U\n" +
+	"\x18RegisterIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x00\x12X\n" +
+	"\x1aDisconnectIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x002U\n" +
 	"\x10IncomingListener\x12A\n" +
 	"\rReceivePacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00B2Z0github.com/himalayo/clusterfuck/networking/protob\x06proto3"
 
@@ -281,13 +291,15 @@ var file_networking_proto_depIdxs = []int32{
 	2, // 0: networking.Networking.SendPacket:input_type -> networking.Packet
 	1, // 1: networking.Networking.SendPackets:input_type -> networking.Packets
 	0, // 2: networking.Networking.RegisterIncomingListener:input_type -> networking.IncomingInstance
-	2, // 3: networking.IncomingListener.ReceivePacket:input_type -> networking.Packet
-	3, // 4: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
-	3, // 5: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
-	3, // 6: networking.Networking.RegisterIncomingListener:output_type -> networking.SuccessMessage
-	3, // 7: networking.IncomingListener.ReceivePacket:output_type -> networking.SuccessMessage
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	0, // 3: networking.Networking.DisconnectIncomingListener:input_type -> networking.IncomingInstance
+	2, // 4: networking.IncomingListener.ReceivePacket:input_type -> networking.Packet
+	3, // 5: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
+	3, // 6: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
+	3, // 7: networking.Networking.RegisterIncomingListener:output_type -> networking.SuccessMessage
+	3, // 8: networking.Networking.DisconnectIncomingListener:output_type -> networking.SuccessMessage
+	3, // 9: networking.IncomingListener.ReceivePacket:output_type -> networking.SuccessMessage
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

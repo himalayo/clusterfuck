@@ -96,7 +96,7 @@ func StartIncoming(addr string) {
 		port = *serverPort
 	}
 	go Incoming.Serve(port + 500)
-	go Incoming.RequestConnection(fmt.Sprintf("%s:%d", hostname, port+500), Net)
+	go Incoming.RequestConnection(fmt.Sprintf("%s:%d", hostname, port+500), Net, "permission")
 }
 
 func StartServer(data *Database) {

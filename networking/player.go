@@ -22,15 +22,12 @@ func handleLoginEvent(c *Client, msg []byte, _ []byte) {
 }
 
 func (a *AuthSystem) run(p *player.PlayerClient, m *Manager) {
-	for {
-		select {
-		case sso := <-p.Login:
-			client := a.pending[sso]
-			if client != nil {
-				m.login <- &Login{sso: sso, client: client}
-			} else {
-				log.Printf("AuthSystem.run: client was nil")
-			}
+	for sso := range p.Login {
+		client := a.pending[sso]
+		if client != nil {
+			m.login <- &Login{sso: sso, client: client}
+		} else {
+			log.Printf("AuthSystem.run: client was nil")
 		}
 	}
 }

@@ -28,13 +28,13 @@ func NewIncomingServer() *IncomingServer {
 	}
 }
 
-func (s *IncomingServer) RequestConnection(addr string, n *api.NetworkingClient) {
+func (s *IncomingServer) RequestConnection(addr string, n *api.NetworkingClient, app string) {
 	headers := make([]int, 0, len(s.handlers))
 	for header := range s.handlers {
 		headers = append(headers, int(header))
 	}
 	log.Printf("Requesting incoming connection as: %s for headers: %v", addr, headers)
-	n.ConnectHandler(addr, headers)
+	n.ConnectHandler(addr, headers, app)
 }
 
 func (s *IncomingServer) ReceivePacket(_ context.Context, p *pb.Packet) (*pb.SuccessMessage, error) {

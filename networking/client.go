@@ -34,14 +34,29 @@ func (c *Client) read() {
 			continue
 		}
 		parsedMessage := ParseMessage(message)
-		fns, ok := Handlers[parsedMessage.header]
+		h, ok := Handlers.handlers[parsedMessage.header]
 		if !ok {
 			log.Println("Client.read() unrecognized header:", parsedMessage.header)
 			continue
 		}
-		for i := range fns {
-			go fns[i](c, parsedMessage.data, message)
+		for i := range h {
+			go h[i].function(c, parsedMessage.data, message)
 		}
+
+		apps, ok := ApplicationsHeaders[parsedMessage.header]
+		if !ok {
+			continue
+		}
+
+		go func() {
+			for i := range apps {
+				go func() {
+					apps[i].mu.Lock()
+					apps[i].addresses = append(apps[i].addresses[1:], apps[i].addresses[0])
+					apps[i].mu.Unlock()
+				}()
+			}
+		}()
 	}
 }
 

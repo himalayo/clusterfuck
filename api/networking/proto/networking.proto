@@ -8,6 +8,7 @@ service Networking {
 	rpc SendPacket (Packet) returns (SuccessMessage) {}
 	rpc SendPackets (Packets) returns (SuccessMessage) {}
 	rpc RegisterIncomingListener (IncomingInstance) returns (SuccessMessage) {}
+	rpc DisconnectIncomingListener (IncomingInstance) returns (SuccessMessage) {}
 }
 
 service IncomingListener {
@@ -17,6 +18,7 @@ service IncomingListener {
 message IncomingInstance {
 	string address = 1;
 	repeated int32 headers = 2;
+	string application = 3;
 }
 
 message Packets {

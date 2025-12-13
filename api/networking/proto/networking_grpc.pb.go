@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Networking_SendPacket_FullMethodName               = "/networking.Networking/SendPacket"
-	Networking_SendPackets_FullMethodName              = "/networking.Networking/SendPackets"
-	Networking_RegisterIncomingListener_FullMethodName = "/networking.Networking/RegisterIncomingListener"
+	Networking_SendPacket_FullMethodName                 = "/networking.Networking/SendPacket"
+	Networking_SendPackets_FullMethodName                = "/networking.Networking/SendPackets"
+	Networking_RegisterIncomingListener_FullMethodName   = "/networking.Networking/RegisterIncomingListener"
+	Networking_DisconnectIncomingListener_FullMethodName = "/networking.Networking/DisconnectIncomingListener"
 )
 
 // NetworkingClient is the client API for Networking service.
@@ -31,6 +32,7 @@ type NetworkingClient interface {
 	SendPacket(ctx context.Context, in *Packet, opts ...grpc.CallOption) (*SuccessMessage, error)
 	SendPackets(ctx context.Context, in *Packets, opts ...grpc.CallOption) (*SuccessMessage, error)
 	RegisterIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error)
+	DisconnectIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error)
 }
 
 type networkingClient struct {
@@ -71,6 +73,16 @@ func (c *networkingClient) RegisterIncomingListener(ctx context.Context, in *Inc
 	return out, nil
 }
 
+func (c *networkingClient) DisconnectIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuccessMessage)
+	err := c.cc.Invoke(ctx, Networking_DisconnectIncomingListener_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkingServer is the server API for Networking service.
 // All implementations must embed UnimplementedNetworkingServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type NetworkingServer interface {
 	SendPacket(context.Context, *Packet) (*SuccessMessage, error)
 	SendPackets(context.Context, *Packets) (*SuccessMessage, error)
 	RegisterIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error)
+	DisconnectIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error)
 	mustEmbedUnimplementedNetworkingServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedNetworkingServer) SendPackets(context.Context, *Packets) (*Su
 }
 func (UnimplementedNetworkingServer) RegisterIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterIncomingListener not implemented")
+}
+func (UnimplementedNetworkingServer) DisconnectIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisconnectIncomingListener not implemented")
 }
 func (UnimplementedNetworkingServer) mustEmbedUnimplementedNetworkingServer() {}
 func (UnimplementedNetworkingServer) testEmbeddedByValue()                    {}
@@ -172,6 +188,24 @@ func _Networking_RegisterIncomingListener_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Networking_DisconnectIncomingListener_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncomingInstance)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkingServer).DisconnectIncomingListener(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Networking_DisconnectIncomingListener_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkingServer).DisconnectIncomingListener(ctx, req.(*IncomingInstance))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Networking_ServiceDesc is the grpc.ServiceDesc for Networking service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var Networking_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterIncomingListener",
 			Handler:    _Networking_RegisterIncomingListener_Handler,
+		},
+		{
+			MethodName: "DisconnectIncomingListener",
+			Handler:    _Networking_DisconnectIncomingListener_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

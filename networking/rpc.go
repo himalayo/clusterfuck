@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	listener "github.com/himalayo/clusterfuck/api/networking/listener"
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
@@ -16,9 +17,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type application struct {
+	addresses []string
+	headers   []int32
+	mu        sync.Mutex
+}
+
 var (
-	grpc_port = flag.Int("grpc_port", 50051, "The gRPC server port")
-	Listeners = make(map[string]listener.Listener)
+	grpc_port            = flag.Int("grpc_port", 50051, "The gRPC server port")
+	Listeners            = make(map[string]*listener.Listener)
+	Applications         = make(map[string]*application)
+	ApplicationsHeaders  = make(map[int16][]*application)
+	AddressToApplication = make(map[string]*application)
 )
 
 type grpcServer struct {
@@ -56,15 +66,45 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 		return &pb.SuccessMessage{Successful: false}, nil
 	}
 
-	for i := range headers {
-		registerHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
-			if c.sso == "" {
-				return
+	Listeners[addr] = lis
+
+	if in.Application == "" {
+		for i := range headers {
+			RegisterHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
+				if c.sso == "" {
+					return
+				}
+				go func() {
+					lis.Send(c.sso, packet)
+				}()
+			})
+		}
+	} else {
+		app, ok := Applications[in.Application]
+		if !ok {
+			app = &application{
+				addresses: []string{addr},
+				headers:   headers,
 			}
-			go func() {
-				lis.Send(c.sso, packet)
-			}()
-		})
+			Applications[in.Application] = app
+			AddressToApplication[addr] = app
+		}
+		for i := range headers {
+			handler_id := RegisterHandler(int16(headers[i]), func(c *Client, data []byte, packet []byte) {
+				if c.sso == "" {
+					return
+				}
+				app := Applications[in.Application].addresses
+				if addr != app[0] {
+					return
+				}
+				go func() {
+					lis.Send(c.sso, packet)
+				}()
+			})
+			lis.HandlerIds = append(lis.HandlerIds, handler_id)
+			ApplicationsHeaders[int16(headers[i])] = append(ApplicationsHeaders[int16(headers[i])], app)
+		}
 	}
 
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
