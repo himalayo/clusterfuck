@@ -52,12 +52,12 @@ func toCategoryEnum(category string) pb.AchievementCategory {
 	return pb.AchievementCategory(pb.AchievementCategory_value[strings.ToUpper(category)])
 }
 
-func compareAchievements(a, b pb.Achievement) int {
+func compareAchievements(a, b *pb.Achievement) int {
 	return cmp.Compare(a.Id, b.Id)
 }
 
-func (data *Database) GetAchievements() ([]pb.Achievement, error) {
-	achievements := make(map[string]pb.Achievement)
+func (data *Database) GetAchievements() ([]*pb.Achievement, error) {
+	achievements := make(map[string]*pb.Achievement)
 	rows, err := data.db.Query("SELECT id, name, category, level, reward_amount, reward_type, points, progress_needed FROM achievements")
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (data *Database) GetAchievements() ([]pb.Achievement, error) {
 		_, ok := achievements[achievement.Name]
 		if !ok {
 			achievement.Levels = make(map[int32]*pb.AchievementLevel)
-			achievements[achievement.Name] = achievement
+			achievements[achievement.Name] = &achievement
 		}
 		currentAchievement := achievements[achievement.Name]
 		currentAchievement.Levels[level.Level] = &level
