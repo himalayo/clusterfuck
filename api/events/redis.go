@@ -40,6 +40,8 @@ func NewRedisSubscriber(redis_config *redis.Options, stream string, group string
 	consumer := consumer_uuid.String()
 	rdb := redis.NewClient(redis_config)
 	handlers := make(map[string][]*HandlerInstance)
+
+	rdb.XGroupCreateMkStream(context.Background(), stream, group, "$").Result()
 	return &RedisSubscriber{
 		rdb:      rdb,
 		Stream:   stream,
@@ -158,6 +160,10 @@ func (b *RedisSubscriber) Recover(ctx context.Context) error {
 			pending_ids = append(pending_ids, pending.ID)
 		}
 	}
+	if len(pending_ids) == 0 {
+		return nil
+	}
+
 	messages, err := b.rdb.XClaim(ctx, &redis.XClaimArgs{
 		Stream:   b.Stream,
 		Group:    b.Group,

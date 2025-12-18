@@ -7,14 +7,19 @@ import (
 	"os"
 
 	player "github.com/himalayo/clusterfuck/api/player"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
 	addr       = flag.String("addr", ":2096", "http service address")
 	playerAddr = flag.String("player_addr", "localhost:50053", "player service address")
 	Man        = newManager()
-	Player     = player.NewClient()
-	Auth       = newAuth()
+	Player, _  = player.NewClient("networking-service", &redis.Options{
+		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
+		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
+		DB:       0,
+	})
+	Auth = newAuth()
 )
 
 func main() {

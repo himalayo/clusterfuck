@@ -32,6 +32,9 @@ services:
       context: ./
       dockerfile: ./networking/Dockerfile
     restart: always
+    depends_on:
+      player-event-redis:
+        condition: service_healthy
     networks:
       - clusterfuck_network
 

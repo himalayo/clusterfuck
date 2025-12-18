@@ -26,3 +26,9 @@ message UserData {
 	int32 home_room = 6;
 	int32 rank = 7;
 }
+
+message LoginEvent {
+	string id = 1;
+	string type = 2;
+	UserData user_data = 3;
+}

@@ -101,6 +101,8 @@ func (e *EventListener) newLoginEvent(userData *UserData) *LoginEvent {
 	}
 	eventType := LoginEventType
 	values := userData.ToMap()
+	values["id"] = id
+	values["type"] = eventType
 	return &LoginEvent{
 		Id: id, Type: eventType, Values: values,
 		UserData: userData,
@@ -115,12 +117,13 @@ func (e *EventListener) handleLoginEvent(ticket string) {
 func (e *EventListener) resultLoginEvent(ctx context.Context, playerData *UserData) {
 	e.login <- playerData != nil
 	event := e.newLoginEvent(playerData)
-	e.bus.Publish(ctx, event)
+	go e.redis_pub.Publish(ctx, event)
+	go e.bus.Publish(ctx, event)
 }
 
 func (e *EventListener) RegisterLoginHandler(handler func(context.Context, *LoginEvent)) {
 	e.bus.Subscribe(LoginEventType, func(ctx context.Context, evt events.Event) {
-		go handler(ctx, ToLoginEvent(evt))
+		handler(ctx, ToLoginEvent(evt))
 	})
 }
 

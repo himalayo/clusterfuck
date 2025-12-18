@@ -8,6 +8,7 @@ import (
 	listener "github.com/himalayo/clusterfuck/api/networking/listener/server"
 	player "github.com/himalayo/clusterfuck/api/player"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -15,8 +16,12 @@ var (
 	playerAddr     = flag.String("player_addr", "localhost:50053", "player gRPC API address")
 	Net            = networking.NewClient()
 	Incoming       = listener.NewIncomingServer()
-	Player         = player.NewClient()
-	db             = NewDatabase(ConfigDatabaseFromEnv())
+	Player, _      = player.NewClient("permission-service", &redis.Options{
+		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
+		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
+		DB:       0,
+	})
+	db = NewDatabase(ConfigDatabaseFromEnv())
 )
 
 func main() {
@@ -30,7 +35,6 @@ func main() {
 	if !present {
 		netAddr = *networkingAddr
 	}
-
 	go Net.Listen(netAddr)
 	go Player.Listen(plAddr)
 	RegisterIncomingHandlers()
