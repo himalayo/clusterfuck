@@ -29,7 +29,7 @@ func sendLoginOK(ctx context.Context, event *LoginEvent) {
 
 func sendUserNoobStatus(ctx context.Context, event *LoginEvent) {
 	log.Printf("sendUserNoobStatus: %s", event.UserData.AuthTicket)
-	UserNoobStatusComposer(1)
+	Net.Send(event.UserData.AuthTicket, UserNoobStatusComposer(1))
 }
 
 func sendUserEffects(ctx context.Context, event *LoginEvent) {
@@ -82,7 +82,7 @@ func sendBuildersClubExpired(ctx context.Context, event *LoginEvent) {
 }
 
 func sendCfhTopics(ctx context.Context, event *LoginEvent) {
-	Mod.CfhTopicsMessageComposer()
+	Net.Send(event.UserData.AuthTicket, Mod.CfhTopicsMessageComposer())
 }
 
 func sendFavoriteRooms(ctx context.Context, event *LoginEvent) {
