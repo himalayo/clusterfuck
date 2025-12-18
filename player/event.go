@@ -120,7 +120,7 @@ func (e *EventListener) resultLoginEvent(ctx context.Context, playerData *UserDa
 
 func (e *EventListener) RegisterLoginHandler(handler func(context.Context, *LoginEvent)) {
 	e.bus.Subscribe(LoginEventType, func(ctx context.Context, evt events.Event) {
-		handler(ctx, ToLoginEvent(evt))
+		go handler(ctx, ToLoginEvent(evt))
 	})
 }
 

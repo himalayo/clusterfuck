@@ -97,7 +97,7 @@ func (b *LocalBus) Subscribe(eventType string, handler EventHandler) Subscriptio
 func (b *LocalBus) Publish(ctx context.Context, evt Event) error {
 	b.mu.RLock()
 	handlers, ok := b.handlers[evt.GetType()]
-	b.mu.Unlock()
+	b.mu.RUnlock()
 
 	if !ok {
 		return nil

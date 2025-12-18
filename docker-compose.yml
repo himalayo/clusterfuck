@@ -134,8 +134,6 @@ services:
     image: 'redis:alpine'
     hostname: permission-redis
     container_name: permission-redis
-    ports:
-        - '${PERMISSION_REDIS_PORT:-6379}:6379'
     volumes:
         - 'permission_redis:/data'
     networks:
@@ -152,10 +150,8 @@ services:
     image: 'redis:alpine'
     hostname: player-event-redis
     container_name: player-event-redis
-    ports:
-        - '${PLAYER_REDIS_PORT:-6379}:6379'
     volumes:
-        - 'player_events_redis:/data'
+        - 'player_event_redis:/data'
     networks:
         - clusterfuck_network
     healthcheck:
