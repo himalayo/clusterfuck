@@ -40,7 +40,7 @@ func (s *server) LoginPlayer(_ context.Context, sso *pb.Ticket) (*pb.LoginStatus
 }
 
 func (s *server) GetUserData(_ context.Context, sso *pb.Ticket) (*pb.UserData, error) {
-	return s.events.data.loadUserData(sso.GetSso()).toProto(), nil
+	return Data.loadUserData(sso.GetSso()).toProto(), nil
 }
 
 func StartIncoming(addr string) {
