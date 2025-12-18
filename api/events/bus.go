@@ -56,6 +56,12 @@ type LocalBus struct {
 	handlers map[string][]*HandlerInstance
 }
 
+func NewLocalBus() *LocalBus {
+	return &LocalBus{
+		handlers: make(map[string][]*HandlerInstance),
+	}
+}
+
 type LocalSubscription struct {
 	Bus     *LocalBus
 	Type    string

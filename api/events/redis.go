@@ -7,12 +7,20 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
 type RedisPublisher struct {
 	rdb    *redis.Client
 	Stream string
+}
+
+func NewRedisPublisher(redis_config *redis.Options, stream string) *RedisPublisher {
+	return &RedisPublisher{
+		rdb:    redis.NewClient(redis_config),
+		Stream: stream,
+	}
 }
 
 type RedisSubscriber struct {
@@ -22,6 +30,23 @@ type RedisSubscriber struct {
 	Consumer string
 	handlers map[string][]*HandlerInstance
 	mu       sync.RWMutex
+}
+
+func NewRedisSubscriber(redis_config *redis.Options, stream string, group string) (*RedisSubscriber, error) {
+	consumer_uuid, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+	consumer := consumer_uuid.String()
+	rdb := redis.NewClient(redis_config)
+	handlers := make(map[string][]*HandlerInstance)
+	return &RedisSubscriber{
+		rdb:      rdb,
+		Stream:   stream,
+		Group:    group,
+		Consumer: consumer,
+		handlers: handlers,
+	}, nil
 }
 
 type RedisSubscription struct {

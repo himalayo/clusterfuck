@@ -148,6 +148,24 @@ services:
         retries: 3
         timeout: 5s
 
+  player-event-redis:
+    image: 'redis:alpine'
+    hostname: player-event-redis
+    container_name: player-event-redis
+    ports:
+        - '${PLAYER_REDIS_PORT:-6379}:6379'
+    volumes:
+        - 'player_events_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
   player-redis:
     image: 'redis:alpine'
     hostname: player-redis
@@ -176,6 +194,8 @@ volumes:
   permission_redis:
     driver: local
   player_redis:
+    driver: local
+  player_event_redis:
     driver: local
   mariadb_data:
     driver: local

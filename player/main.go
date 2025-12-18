@@ -12,6 +12,7 @@ import (
 	permission "github.com/himalayo/clusterfuck/api/permission"
 	subscription "github.com/himalayo/clusterfuck/api/subscription"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -29,7 +30,12 @@ var (
 	Ach               = achievements.NewClient()
 	Incoming          = listener.NewIncomingServer()
 	Data              = NewDatabase(ConfigDatabaseFromEnv())
-	Events            = NewEventListener(Data, Net, Sub, Perm, Mod, Cfg, Ach)
+	Events            = NewEventListener(&redis.Options{
+		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
+		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
+		DB:       0,
+	},
+		Data, Net, Sub, Perm, Mod, Cfg, Ach)
 )
 
 func main() {

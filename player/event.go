@@ -1,73 +1,141 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"math/rand"
 
+	"github.com/google/uuid"
 	achievements "github.com/himalayo/clusterfuck/api/achievements"
 	configuration "github.com/himalayo/clusterfuck/api/configuration"
+	events "github.com/himalayo/clusterfuck/api/events"
 	modtool "github.com/himalayo/clusterfuck/api/modtool"
 	networking "github.com/himalayo/clusterfuck/api/networking"
 	permission "github.com/himalayo/clusterfuck/api/permission"
 	pb "github.com/himalayo/clusterfuck/api/player/proto"
 	subscription "github.com/himalayo/clusterfuck/api/subscription"
+	"github.com/redis/go-redis/v9"
 )
 
 type LoginEvent struct {
-	Data          *Database
-	UserData      *UserData
-	Network       *networking.NetworkingClient
-	Subscription  *subscription.SubscriptionClient
-	Permission    *permission.PermissionsClient
-	Modtool       *modtool.ModtoolClient
-	Configuration *configuration.ConfigurationClient
-	Achievements  *achievements.AchievementsClient
+	Id       string
+	Type     string
+	Values   map[string]interface{}
+	UserData *UserData
 }
 
-func (l *LoginEvent) Send(data []byte) {
-	if data != nil {
-		l.Network.Send(l.UserData.AuthTicket, data)
+func ToLoginEvent(evt events.Event) *LoginEvent {
+	return &LoginEvent{
+		Id:       evt.GetId(),
+		Type:     evt.GetType(),
+		Values:   evt.GetValues(),
+		UserData: NewUserDataFromMap(evt.GetValues()),
 	}
 }
 
-type EventListener struct {
-	ticket        chan *pb.Ticket
-	data          *Database
-	netw          *networking.NetworkingClient
-	sub           *subscription.SubscriptionClient
-	perm          *permission.PermissionsClient
-	mod           *modtool.ModtoolClient
-	cfg           *configuration.ConfigurationClient
-	ach           *achievements.AchievementsClient
-	login         chan bool
-	loginHandlers []func(*LoginEvent) []byte
+const (
+	LoginEventType = "LOGIN"
+)
+
+func (l *LoginEvent) Send(data []byte) {
+	if data != nil {
+		Net.Send(l.UserData.AuthTicket, data)
+	}
 }
 
-func NewEventListener(data *Database, netw *networking.NetworkingClient, sub *subscription.SubscriptionClient, perm *permission.PermissionsClient, mod *modtool.ModtoolClient, cfg *configuration.ConfigurationClient, ach *achievements.AchievementsClient) *EventListener {
-	return &EventListener{ticket: make(chan *pb.Ticket), data: data, netw: netw, login: make(chan bool), sub: sub, perm: perm, mod: mod, cfg: cfg, ach: ach}
+func (l *LoginEvent) GetId() string {
+	return l.Id
+}
+
+func (l *LoginEvent) GetType() string {
+	return l.Type
+}
+
+func (l *LoginEvent) GetValues() map[string]interface{} {
+	return l.Values
+}
+
+type EventListener struct {
+	ticket    chan *pb.Ticket
+	redis_pub *events.RedisPublisher
+	bus       *events.LocalBus
+	login     chan bool
+}
+
+func NewEventListener(
+	evt_cfg *redis.Options,
+	data *Database,
+	netw *networking.NetworkingClient,
+	sub *subscription.SubscriptionClient,
+	perm *permission.PermissionsClient,
+	mod *modtool.ModtoolClient,
+	cfg *configuration.ConfigurationClient,
+	ach *achievements.AchievementsClient) *EventListener {
+	redis_pub := events.NewRedisPublisher(evt_cfg, "player-events")
+	bus := events.NewLocalBus()
+	return &EventListener{
+		ticket:    make(chan *pb.Ticket),
+		login:     make(chan bool),
+		redis_pub: redis_pub, bus: bus,
+	}
+}
+
+func (u *UserData) ToMap() map[string]interface{} {
+	values := make(map[string]interface{})
+	values["user_id"] = u.Id
+	values["username"] = u.Username
+	values["auth_ticket"] = u.AuthTicket
+	values["look"] = u.Look
+	values["motto"] = u.Motto
+	values["home_room"] = u.HomeRoom
+	values["rank"] = u.Rank
+	return values
+}
+
+func NewUserDataFromMap(values map[string]interface{}) *UserData {
+	return &UserData{
+		Id:         values["user_id"].(int),
+		Username:   values["username"].(string),
+		AuthTicket: values["auth_ticket"].(string),
+		Look:       values["look"].(string),
+		Motto:      values["motto"].(string),
+		HomeRoom:   values["home_room"].(int),
+		Rank:       values["rank"].(int),
+	}
 }
 
 func (e *EventListener) newLoginEvent(userData *UserData) *LoginEvent {
-	return &LoginEvent{Data: e.data, UserData: userData, Network: e.netw, Subscription: e.sub, Permission: e.perm, Modtool: e.mod, Configuration: e.cfg, Achievements: e.ach}
+	id_uuid, err := uuid.NewRandom()
+	var id string
+	if err != nil {
+		id = fmt.Sprintf("%v", rand.Float64())
+	} else {
+		id = id_uuid.String()
+	}
+	eventType := LoginEventType
+	values := userData.ToMap()
+	return &LoginEvent{
+		Id: id, Type: eventType, Values: values,
+		UserData: userData,
+	}
 }
 
 func (e *EventListener) handleLoginEvent(ticket string) {
 	log.Printf("EventListener.handleLoginEvent: %s", ticket)
-	e.data.AuthTicketEvent(ticket)
+	Data.AuthTicketEvent(ticket)
 }
 
-func (e *EventListener) resultLoginEvent(playerData *UserData) {
+func (e *EventListener) resultLoginEvent(ctx context.Context, playerData *UserData) {
 	e.login <- playerData != nil
 	event := e.newLoginEvent(playerData)
-	event.Send(e.loginHandlers[0](event))
-	for _, handler := range e.loginHandlers[1:] {
-		func(event *LoginEvent, handler func(*LoginEvent) []byte) {
-			event.Send(handler(event))
-		}(event, handler)
-	}
+	e.bus.Publish(ctx, event)
 }
 
-func (e *EventListener) RegisterLoginHandler(handler func(*LoginEvent) []byte) {
-	e.loginHandlers = append(e.loginHandlers, handler)
+func (e *EventListener) RegisterLoginHandler(handler func(context.Context, *LoginEvent)) {
+	e.bus.Subscribe(LoginEventType, func(ctx context.Context, evt events.Event) {
+		handler(ctx, ToLoginEvent(evt))
+	})
 }
 
 func (e *EventListener) Login(sso *pb.Ticket) bool {
@@ -94,8 +162,8 @@ func (e *EventListener) Listen() {
 		select {
 		case ticket := <-e.ticket:
 			e.handleLoginEvent(ticket.Sso)
-		case playerData := <-e.data.Auth:
-			e.resultLoginEvent(playerData)
+		case playerData := <-Data.Auth:
+			e.resultLoginEvent(context.Background(), playerData)
 		}
 	}
 }
