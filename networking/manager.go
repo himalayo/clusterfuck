@@ -35,6 +35,7 @@ func (m *Manager) run() {
 		case client := <-m.die:
 			if _, ok := m.clients[client]; ok {
 				delete(m.clients, client)
+				delete(m.sessions, client.sso)
 				close(client.send)
 			}
 		case loginRequest := <-m.login:
