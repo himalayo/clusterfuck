@@ -7,14 +7,8 @@ import (
 	"math/rand"
 
 	"github.com/google/uuid"
-	achievements "github.com/himalayo/clusterfuck/api/achievements"
-	configuration "github.com/himalayo/clusterfuck/api/configuration"
 	events "github.com/himalayo/clusterfuck/api/events"
-	modtool "github.com/himalayo/clusterfuck/api/modtool"
-	networking "github.com/himalayo/clusterfuck/api/networking"
-	permission "github.com/himalayo/clusterfuck/api/permission"
 	pb "github.com/himalayo/clusterfuck/api/player/proto"
-	subscription "github.com/himalayo/clusterfuck/api/subscription"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -63,15 +57,7 @@ type EventListener struct {
 	login     chan bool
 }
 
-func NewEventListener(
-	evt_cfg *redis.Options,
-	data *Database,
-	netw *networking.NetworkingClient,
-	sub *subscription.SubscriptionClient,
-	perm *permission.PermissionsClient,
-	mod *modtool.ModtoolClient,
-	cfg *configuration.ConfigurationClient,
-	ach *achievements.AchievementsClient) *EventListener {
+func NewEventListener(evt_cfg *redis.Options) *EventListener {
 	redis_pub := events.NewRedisPublisher(evt_cfg, "player-events")
 	bus := events.NewLocalBus()
 	return &EventListener{

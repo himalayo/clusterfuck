@@ -34,8 +34,7 @@ var (
 		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
 		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
 		DB:       0,
-	},
-		Data, Net, Sub, Perm, Mod, Cfg, Ach)
+	})
 )
 
 func main() {
