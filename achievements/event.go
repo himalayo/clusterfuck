@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	pb "github.com/himalayo/clusterfuck/api/player/proto"
 )
@@ -11,7 +12,8 @@ func sendInventoryAchievements(ctx context.Context, evt *pb.LoginEvent) {
 	if err != nil {
 		return
 	}
-	Net.Send(evt.UserData.Username, InventoryAchievementsComposer(achievements))
+	log.Printf("Responding to Login Event: %v", evt)
+	Net.Send(evt.UserData.AuthTicket, InventoryAchievementsComposer(achievements))
 }
 
 func RegisterLoginHandlers() {
