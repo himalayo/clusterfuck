@@ -74,6 +74,7 @@ func (b *RedisPublisher) Publish(ctx context.Context, evt Event) error {
 	_, err := b.rdb.XAdd(ctx, &redis.XAddArgs{
 		Stream: b.Stream,
 		Values: evt.GetValues(),
+		MaxLen: 20000,
 	}).Result()
 
 	return err

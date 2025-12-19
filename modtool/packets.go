@@ -49,17 +49,17 @@ func appendBool(packet []byte, b bool) []byte {
 }
 
 func appendValue(packet []byte, value any) []byte {
-	switch value.(type) {
+	switch value := value.(type) {
 	case int16:
-		return appendShort(packet, int(value.(int16)))
+		return appendShort(packet, int(value))
 	case int:
-		return appendInt(packet, value.(int))
+		return appendInt(packet, value)
 	case string:
-		return appendString(packet, value.(string))
+		return appendString(packet, value)
 	case bool:
-		return appendBool(packet, value.(bool))
+		return appendBool(packet, value)
 	case []byte:
-		return append(packet, value.([]byte)...)
+		return append(packet, value...)
 	default:
 		return packet
 	}

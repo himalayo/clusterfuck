@@ -11,15 +11,12 @@ func RegisterLoginHandlers(e *EventListener) {
 	e.RegisterLoginHandler(sendLoginOK)
 	e.RegisterLoginHandler(sendUserEffects)
 	e.RegisterLoginHandler(sendUserNoobStatus)
-	e.RegisterLoginHandler(sendUserPermissions)
 	e.RegisterLoginHandler(sendAvailabilityStatus)
 	e.RegisterLoginHandler(sendEnableNotifications)
 	e.RegisterLoginHandler(sendAchievementScore)
 	e.RegisterLoginHandler(sendMysteryBox)
 	e.RegisterLoginHandler(sendBuildersClubExpired)
-	e.RegisterLoginHandler(sendCfhTopics)
 	e.RegisterLoginHandler(sendFavoriteRooms)
-	e.RegisterLoginHandler(sendInventoryAchievements)
 }
 
 func sendLoginOK(ctx context.Context, event *LoginEvent) {
@@ -49,18 +46,6 @@ func sendUserEffects(ctx context.Context, event *LoginEvent) {
 	Net.Send(event.UserData.AuthTicket, packet)
 }
 
-func sendUserPermissions(ctx context.Context, event *LoginEvent) {
-	log.Printf("sendUserPermissions: %s", event.UserData.AuthTicket)
-	clubLevel := 0
-	if Sub.UserHasSubscription(event.UserData.Id, "HABBO_CLUB") {
-		clubLevel = 2
-	}
-	permissionLevel := int(Perm.GetRankLevel(event.UserData.Rank).GetLevel())
-	hasAmbassador := Perm.GetPermission(event.UserData.Rank, "acc_ambassador").GetSetting() == 1
-	log.Printf("sendUserPermissions: %d", permissionLevel)
-	Net.Send(event.UserData.AuthTicket, UserPermissionsComposer(clubLevel, permissionLevel, hasAmbassador))
-}
-
 func sendAvailabilityStatus(ctx context.Context, event *LoginEvent) {
 	Net.Send(event.UserData.AuthTicket, AvailabilityStatusComposer(true, false, true))
 }
@@ -81,10 +66,6 @@ func sendBuildersClubExpired(ctx context.Context, event *LoginEvent) {
 	Net.Send(event.UserData.AuthTicket, BuildersClubExpiredComposer())
 }
 
-func sendCfhTopics(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, Mod.CfhTopicsMessageComposer())
-}
-
 func sendFavoriteRooms(ctx context.Context, event *LoginEvent) {
 	maxFavoriteRooms, err := Cfg.GetInt("hotel.rooms.max.favorite")
 	if err != nil {
@@ -98,14 +79,6 @@ func sendFavoriteRooms(ctx context.Context, event *LoginEvent) {
 	log.Printf("sendFavoriteRoomsComposer: %d %v", maxFavoriteRooms, favoriteRooms)
 
 	Net.Send(event.UserData.AuthTicket, FavoriteRoomsCountComposer(maxFavoriteRooms, favoriteRooms))
-}
-
-func sendInventoryAchievements(ctx context.Context, event *LoginEvent) {
-	packet, err := Ach.InventoryAchievementsComposer()
-	if err != nil {
-		return
-	}
-	Net.Send(event.UserData.AuthTicket, packet)
 }
 
 func serializeUserEffect(packet []byte, effect *UserEffect) []byte {

@@ -1,6 +1,11 @@
 package main
 
-import "log"
+import (
+	"context"
+	"log"
+
+	pb "github.com/himalayo/clusterfuck/api/player/proto"
+)
 
 func (p RankPerk) Serialize() []byte {
 	return serializeValues(p.Key, p.Requirement, p.Value)
@@ -22,6 +27,10 @@ func (ps Perks) Serialize() []byte {
 	return data
 }
 
+func UserPermissionsComposer(clubLevel int, permissionLevel int, hasAmbassador bool) []byte {
+	return compose(411, clubLevel, permissionLevel, hasAmbassador)
+}
+
 func UserPerksComposer(ps Perks) []byte {
 	return compose(2586, ps)
 }
@@ -34,6 +43,29 @@ func handleUserDataRequest(sso string, _ []byte) {
 	}
 	log.Printf("Sending RankPerks to: %s", sso)
 	Net.Send(sso, UserPerksComposer(perks))
+}
+
+func sendUserPermissions(ctx context.Context, event *pb.LoginEvent) {
+	log.Printf("sendUserPermissions: %s", event.UserData.AuthTicket)
+	clubLevel := 0
+	if Sub.UserHasSubscription(int(event.UserData.Id), "HABBO_CLUB") {
+		clubLevel = 2
+	}
+	permissionLevel, err := db.GetRankLevel(int(event.UserData.Rank))
+	if err != nil {
+		return
+	}
+
+	hasAmbassador, err := db.GetPermission(int(event.UserData.Rank), "acc_ambassador")
+	if err != nil {
+		return
+	}
+	log.Printf("sendUserPermissions: %d", permissionLevel)
+	Net.Send(event.UserData.AuthTicket, UserPermissionsComposer(clubLevel, permissionLevel, hasAmbassador == 1))
+}
+
+func RegisterLoginHandlers() {
+	Player.RegisterLoginHandler(sendUserPermissions)
 }
 
 func RegisterIncomingHandlers() {
