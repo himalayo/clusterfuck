@@ -32,7 +32,6 @@ especially their transition from tightly coupled systems to message-based archit
   - In-process event bus for deterministic handling
 
 - Auxiliary services (e.g. achievements)
-  - Event-driven
   - Eventually consistent
   - React to player lifecycle events via Redis Streams (or gRPC in some instances)
 
