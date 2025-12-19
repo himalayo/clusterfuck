@@ -14,7 +14,7 @@ var (
 	networkingAddr = flag.String("net_addr", "localhost:50051", "networking gRPC API address")
 	playerAddr     = flag.String("player_addr", "localhost:50053", "player gRPC API address")
 	Net            = networking.NewClient()
-	Player, _      = player.NewClient("permission-service", &redis.Options{
+	Player, _      = player.NewClient("modtool-service", &redis.Options{
 		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
 		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
 		DB:       0,
