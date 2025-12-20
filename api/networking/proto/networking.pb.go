@@ -81,6 +81,194 @@ func (x *IncomingInstance) GetApplication() string {
 	return ""
 }
 
+type RedisInstance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Db            int32                  `protobuf:"varint,3,opt,name=db,proto3" json:"db,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RedisInstance) Reset() {
+	*x = RedisInstance{}
+	mi := &file_networking_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedisInstance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedisInstance) ProtoMessage() {}
+
+func (x *RedisInstance) ProtoReflect() protoreflect.Message {
+	mi := &file_networking_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RedisInstance.ProtoReflect.Descriptor instead.
+func (*RedisInstance) Descriptor() ([]byte, []int) {
+	return file_networking_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RedisInstance) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *RedisInstance) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *RedisInstance) GetDb() int32 {
+	if x != nil {
+		return x.Db
+	}
+	return 0
+}
+
+type RedisListener struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Redis         *RedisInstance         `protobuf:"bytes,1,opt,name=redis,proto3" json:"redis,omitempty"`
+	Stream        string                 `protobuf:"bytes,2,opt,name=stream,proto3" json:"stream,omitempty"`
+	Group         string                 `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
+	Headers       []int32                `protobuf:"varint,4,rep,packed,name=headers,proto3" json:"headers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RedisListener) Reset() {
+	*x = RedisListener{}
+	mi := &file_networking_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedisListener) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedisListener) ProtoMessage() {}
+
+func (x *RedisListener) ProtoReflect() protoreflect.Message {
+	mi := &file_networking_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RedisListener.ProtoReflect.Descriptor instead.
+func (*RedisListener) Descriptor() ([]byte, []int) {
+	return file_networking_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RedisListener) GetRedis() *RedisInstance {
+	if x != nil {
+		return x.Redis
+	}
+	return nil
+}
+
+func (x *RedisListener) GetStream() string {
+	if x != nil {
+		return x.Stream
+	}
+	return ""
+}
+
+func (x *RedisListener) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *RedisListener) GetHeaders() []int32 {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+type PacketEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Packet        *Packet                `protobuf:"bytes,3,opt,name=packet,proto3" json:"packet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PacketEvent) Reset() {
+	*x = PacketEvent{}
+	mi := &file_networking_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PacketEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PacketEvent) ProtoMessage() {}
+
+func (x *PacketEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_networking_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PacketEvent.ProtoReflect.Descriptor instead.
+func (*PacketEvent) Descriptor() ([]byte, []int) {
+	return file_networking_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PacketEvent) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PacketEvent) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *PacketEvent) GetPacket() *Packet {
+	if x != nil {
+		return x.Packet
+	}
+	return nil
+}
+
 type Packets struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
@@ -91,7 +279,7 @@ type Packets struct {
 
 func (x *Packets) Reset() {
 	*x = Packets{}
-	mi := &file_networking_proto_msgTypes[1]
+	mi := &file_networking_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +291,7 @@ func (x *Packets) String() string {
 func (*Packets) ProtoMessage() {}
 
 func (x *Packets) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[1]
+	mi := &file_networking_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +304,7 @@ func (x *Packets) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Packets.ProtoReflect.Descriptor instead.
 func (*Packets) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{1}
+	return file_networking_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Packets) GetClientId() string {
@@ -143,7 +331,7 @@ type Packet struct {
 
 func (x *Packet) Reset() {
 	*x = Packet{}
-	mi := &file_networking_proto_msgTypes[2]
+	mi := &file_networking_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -155,7 +343,7 @@ func (x *Packet) String() string {
 func (*Packet) ProtoMessage() {}
 
 func (x *Packet) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[2]
+	mi := &file_networking_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +356,7 @@ func (x *Packet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Packet.ProtoReflect.Descriptor instead.
 func (*Packet) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{2}
+	return file_networking_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Packet) GetClientId() string {
@@ -195,7 +383,7 @@ type SuccessMessage struct {
 
 func (x *SuccessMessage) Reset() {
 	*x = SuccessMessage{}
-	mi := &file_networking_proto_msgTypes[3]
+	mi := &file_networking_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -207,7 +395,7 @@ func (x *SuccessMessage) String() string {
 func (*SuccessMessage) ProtoMessage() {}
 
 func (x *SuccessMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_networking_proto_msgTypes[3]
+	mi := &file_networking_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -220,7 +408,7 @@ func (x *SuccessMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessMessage.ProtoReflect.Descriptor instead.
 func (*SuccessMessage) Descriptor() ([]byte, []int) {
-	return file_networking_proto_rawDescGZIP(), []int{3}
+	return file_networking_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SuccessMessage) GetSuccessful() bool {
@@ -246,7 +434,20 @@ const file_networking_proto_rawDesc = "" +
 	"\x10IncomingInstance\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x18\n" +
 	"\aheaders\x18\x02 \x03(\x05R\aheaders\x12 \n" +
-	"\vapplication\x18\x03 \x01(\tR\vapplication\"@\n" +
+	"\vapplication\x18\x03 \x01(\tR\vapplication\"U\n" +
+	"\rRedisInstance\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x0e\n" +
+	"\x02db\x18\x03 \x01(\x05R\x02db\"\x88\x01\n" +
+	"\rRedisListener\x12/\n" +
+	"\x05redis\x18\x01 \x01(\v2\x19.networking.RedisInstanceR\x05redis\x12\x16\n" +
+	"\x06stream\x18\x02 \x01(\tR\x06stream\x12\x14\n" +
+	"\x05group\x18\x03 \x01(\tR\x05group\x12\x18\n" +
+	"\aheaders\x18\x04 \x03(\x05R\aheaders\"]\n" +
+	"\vPacketEvent\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12*\n" +
+	"\x06packet\x18\x03 \x01(\v2\x12.networking.PacketR\x06packet\"@\n" +
 	"\aPackets\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x18\n" +
 	"\apackets\x18\x02 \x03(\fR\apackets\"=\n" +
@@ -257,14 +458,15 @@ const file_networking_proto_rawDesc = "" +
 	"\n" +
 	"successful\x18\x01 \x01(\bR\n" +
 	"successful\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xc0\x02\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\x92\x03\n" +
 	"\n" +
 	"Networking\x12>\n" +
 	"\n" +
 	"SendPacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00\x12@\n" +
 	"\vSendPackets\x12\x13.networking.Packets\x1a\x1a.networking.SuccessMessage\"\x00\x12V\n" +
 	"\x18RegisterIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x00\x12X\n" +
-	"\x1aDisconnectIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x002U\n" +
+	"\x1aDisconnectIncomingListener\x12\x1c.networking.IncomingInstance\x1a\x1a.networking.SuccessMessage\"\x00\x12P\n" +
+	"\x15RegisterRedisListener\x12\x19.networking.RedisListener\x1a\x1a.networking.SuccessMessage\"\x002U\n" +
 	"\x10IncomingListener\x12A\n" +
 	"\rReceivePacket\x12\x12.networking.Packet\x1a\x1a.networking.SuccessMessage\"\x00B2Z0github.com/himalayo/clusterfuck/networking/protob\x06proto3"
 
@@ -280,29 +482,36 @@ func file_networking_proto_rawDescGZIP() []byte {
 	return file_networking_proto_rawDescData
 }
 
-var file_networking_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_networking_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_networking_proto_goTypes = []any{
 	(*IncomingInstance)(nil), // 0: networking.IncomingInstance
-	(*Packets)(nil),          // 1: networking.Packets
-	(*Packet)(nil),           // 2: networking.Packet
-	(*SuccessMessage)(nil),   // 3: networking.SuccessMessage
+	(*RedisInstance)(nil),    // 1: networking.RedisInstance
+	(*RedisListener)(nil),    // 2: networking.RedisListener
+	(*PacketEvent)(nil),      // 3: networking.PacketEvent
+	(*Packets)(nil),          // 4: networking.Packets
+	(*Packet)(nil),           // 5: networking.Packet
+	(*SuccessMessage)(nil),   // 6: networking.SuccessMessage
 }
 var file_networking_proto_depIdxs = []int32{
-	2, // 0: networking.Networking.SendPacket:input_type -> networking.Packet
-	1, // 1: networking.Networking.SendPackets:input_type -> networking.Packets
-	0, // 2: networking.Networking.RegisterIncomingListener:input_type -> networking.IncomingInstance
-	0, // 3: networking.Networking.DisconnectIncomingListener:input_type -> networking.IncomingInstance
-	2, // 4: networking.IncomingListener.ReceivePacket:input_type -> networking.Packet
-	3, // 5: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
-	3, // 6: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
-	3, // 7: networking.Networking.RegisterIncomingListener:output_type -> networking.SuccessMessage
-	3, // 8: networking.Networking.DisconnectIncomingListener:output_type -> networking.SuccessMessage
-	3, // 9: networking.IncomingListener.ReceivePacket:output_type -> networking.SuccessMessage
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: networking.RedisListener.redis:type_name -> networking.RedisInstance
+	5, // 1: networking.PacketEvent.packet:type_name -> networking.Packet
+	5, // 2: networking.Networking.SendPacket:input_type -> networking.Packet
+	4, // 3: networking.Networking.SendPackets:input_type -> networking.Packets
+	0, // 4: networking.Networking.RegisterIncomingListener:input_type -> networking.IncomingInstance
+	0, // 5: networking.Networking.DisconnectIncomingListener:input_type -> networking.IncomingInstance
+	2, // 6: networking.Networking.RegisterRedisListener:input_type -> networking.RedisListener
+	5, // 7: networking.IncomingListener.ReceivePacket:input_type -> networking.Packet
+	6, // 8: networking.Networking.SendPacket:output_type -> networking.SuccessMessage
+	6, // 9: networking.Networking.SendPackets:output_type -> networking.SuccessMessage
+	6, // 10: networking.Networking.RegisterIncomingListener:output_type -> networking.SuccessMessage
+	6, // 11: networking.Networking.DisconnectIncomingListener:output_type -> networking.SuccessMessage
+	6, // 12: networking.Networking.RegisterRedisListener:output_type -> networking.SuccessMessage
+	6, // 13: networking.IncomingListener.ReceivePacket:output_type -> networking.SuccessMessage
+	8, // [8:14] is the sub-list for method output_type
+	2, // [2:8] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_networking_proto_init() }
@@ -316,7 +525,7 @@ func file_networking_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_networking_proto_rawDesc), len(file_networking_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

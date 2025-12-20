@@ -23,6 +23,7 @@ const (
 	Networking_SendPackets_FullMethodName                = "/networking.Networking/SendPackets"
 	Networking_RegisterIncomingListener_FullMethodName   = "/networking.Networking/RegisterIncomingListener"
 	Networking_DisconnectIncomingListener_FullMethodName = "/networking.Networking/DisconnectIncomingListener"
+	Networking_RegisterRedisListener_FullMethodName      = "/networking.Networking/RegisterRedisListener"
 )
 
 // NetworkingClient is the client API for Networking service.
@@ -33,6 +34,7 @@ type NetworkingClient interface {
 	SendPackets(ctx context.Context, in *Packets, opts ...grpc.CallOption) (*SuccessMessage, error)
 	RegisterIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error)
 	DisconnectIncomingListener(ctx context.Context, in *IncomingInstance, opts ...grpc.CallOption) (*SuccessMessage, error)
+	RegisterRedisListener(ctx context.Context, in *RedisListener, opts ...grpc.CallOption) (*SuccessMessage, error)
 }
 
 type networkingClient struct {
@@ -83,6 +85,16 @@ func (c *networkingClient) DisconnectIncomingListener(ctx context.Context, in *I
 	return out, nil
 }
 
+func (c *networkingClient) RegisterRedisListener(ctx context.Context, in *RedisListener, opts ...grpc.CallOption) (*SuccessMessage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuccessMessage)
+	err := c.cc.Invoke(ctx, Networking_RegisterRedisListener_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkingServer is the server API for Networking service.
 // All implementations must embed UnimplementedNetworkingServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type NetworkingServer interface {
 	SendPackets(context.Context, *Packets) (*SuccessMessage, error)
 	RegisterIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error)
 	DisconnectIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error)
+	RegisterRedisListener(context.Context, *RedisListener) (*SuccessMessage, error)
 	mustEmbedUnimplementedNetworkingServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedNetworkingServer) RegisterIncomingListener(context.Context, *
 }
 func (UnimplementedNetworkingServer) DisconnectIncomingListener(context.Context, *IncomingInstance) (*SuccessMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisconnectIncomingListener not implemented")
+}
+func (UnimplementedNetworkingServer) RegisterRedisListener(context.Context, *RedisListener) (*SuccessMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterRedisListener not implemented")
 }
 func (UnimplementedNetworkingServer) mustEmbedUnimplementedNetworkingServer() {}
 func (UnimplementedNetworkingServer) testEmbeddedByValue()                    {}
@@ -206,6 +222,24 @@ func _Networking_DisconnectIncomingListener_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Networking_RegisterRedisListener_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedisListener)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkingServer).RegisterRedisListener(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Networking_RegisterRedisListener_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkingServer).RegisterRedisListener(ctx, req.(*RedisListener))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Networking_ServiceDesc is the grpc.ServiceDesc for Networking service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var Networking_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisconnectIncomingListener",
 			Handler:    _Networking_DisconnectIncomingListener_Handler,
+		},
+		{
+			MethodName: "RegisterRedisListener",
+			Handler:    _Networking_RegisterRedisListener_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

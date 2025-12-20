@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type HandlerManager struct {
 	count             int
 	handlers          map[int16][]handler
@@ -41,10 +43,29 @@ func RemoveHandler(id int) {
 	}
 }
 
+func PongComposer(id int) []byte {
+	return compose(10, id)
+}
+
+func handlePingEvent(c *Client, msg []byte, _ []byte) {
+	id, _ := ReadInt(msg)
+	c.send <- PongComposer(id)
+}
+
+func handlePongEvent(c *Client, _ []byte, _ []byte) {
+	c.last_pong = time.Now()
+}
+
 func RegisterHandlers() {
 	registerAuthHandlers()
+	registerPingPongHandlers()
 }
 
 func registerAuthHandlers() {
 	RegisterHandler(2419, handleLoginEvent)
+}
+
+func registerPingPongHandlers() {
+	RegisterHandler(295, handlePingEvent)
+	RegisterHandler(2596, handlePongEvent)
 }

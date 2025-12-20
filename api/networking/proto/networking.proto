@@ -9,6 +9,7 @@ service Networking {
 	rpc SendPackets (Packets) returns (SuccessMessage) {}
 	rpc RegisterIncomingListener (IncomingInstance) returns (SuccessMessage) {}
 	rpc DisconnectIncomingListener (IncomingInstance) returns (SuccessMessage) {}
+	rpc RegisterRedisListener (RedisListener) returns (SuccessMessage) {}
 }
 
 service IncomingListener {
@@ -19,6 +20,25 @@ message IncomingInstance {
 	string address = 1;
 	repeated int32 headers = 2;
 	string application = 3;
+}
+
+message RedisInstance {
+	string address = 1;
+	string password = 2;
+	int32 db = 3;
+}
+
+message RedisListener {
+	RedisInstance redis = 1;
+	string stream = 2;
+	string group = 3;
+	repeated int32 headers = 4;	
+}
+
+message PacketEvent {
+	string id = 1;
+	string type = 2;
+	Packet packet = 3;
 }
 
 message Packets {

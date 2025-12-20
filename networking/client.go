@@ -3,15 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Client struct {
-	manager *Manager
-	conn    *websocket.Conn
-	send    chan []byte
-	sso     string
+	manager   *Manager
+	conn      *websocket.Conn
+	send      chan []byte
+	sso       string
+	last_pong time.Time
 }
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}

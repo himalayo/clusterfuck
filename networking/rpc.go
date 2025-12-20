@@ -5,14 +5,18 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
+	events "github.com/himalayo/clusterfuck/api/events"
 	listener "github.com/himalayo/clusterfuck/api/networking/listener"
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -127,6 +131,61 @@ func (s *grpcServer) RegisterIncomingListener(_ context.Context, in *pb.Incoming
 
 	log.Printf("Successfully established connection with: %s for headers: %v", addr, headers)
 
+	return &pb.SuccessMessage{Successful: true}, nil
+}
+
+type PacketEvent struct {
+	Id     string
+	Type   string
+	Value  map[string]interface{}
+	Packet []byte
+}
+
+func (p *PacketEvent) GetId() string {
+	return p.Id
+}
+
+func (p *PacketEvent) GetType() string {
+	return p.Type
+}
+
+func (p *PacketEvent) GetValues() map[string]interface{} {
+	return p.Value
+}
+
+func (s *grpcServer) RegisterRedisListener(_ context.Context, in *pb.RedisListener) (*pb.SuccessMessage, error) {
+	pub := events.NewRedisPublisher(&redis.Options{
+		Addr:     in.Redis.GetAddress(),
+		Password: in.Redis.GetPassword(),
+		DB:       int(in.Redis.GetDb()),
+	}, in.GetStream())
+	headers := in.GetHeaders()
+	for _, header := range headers {
+		log.Printf("Registering header %d to %s", header, in.Redis.GetAddress())
+		RegisterHandler(int16(header), func(c *Client, _ []byte, packet []byte) {
+			go func() {
+				id_uuid, err := uuid.NewRandom()
+				var id string
+				if err != nil {
+					id = fmt.Sprintf("%v", rand.Float64())
+				} else {
+					id = id_uuid.String()
+				}
+				value := make(map[string]interface{})
+				value["id"] = id
+				value["type"] = fmt.Sprintf("%d", header)
+				value["packet"] = packet
+				value["client_id"] = c.sso
+				log.Printf("Publishing %d to %s (%s)", header, pub.Stream, in.Redis.GetAddress())
+				pub.Publish(context.Background(), &PacketEvent{
+					Id:     id,
+					Type:   fmt.Sprintf("%d", header),
+					Value:  value,
+					Packet: packet,
+				})
+			}()
+		})
+	}
 	return &pb.SuccessMessage{Successful: true}, nil
 }
 

@@ -34,6 +34,14 @@ func main() {
 	}
 
 	go Net.Listen(netAddr)
+	Net.ConnectRedisHandler(
+		os.Getenv("ACHIEVEMENTS_EVENTS_REDIS_ADDR"),
+		os.Getenv("ACHIEVEMENTS_EVENTS_REDIS_PASSWORD"),
+		0,
+		"networking-events",
+		[]int{219},
+	)
+	RegisterPacketHandlers()
 	RegisterLoginHandlers()
 	go Player.Listen(plAddr)
 	StartServer(data)
