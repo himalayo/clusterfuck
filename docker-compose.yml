@@ -215,6 +215,36 @@ services:
         retries: 3
         timeout: 5s
     
+  subscription-redis:
+    image: 'redis:alpine'
+    hostname: subscription-redis
+    container_name: subscription-redis
+    volumes:
+        - 'subscription_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+  subscription-event-redis:
+    image: 'redis:alpine'
+    hostname: subscription-event-redis
+    container_name: subscription-event-redis
+    volumes:
+        - 'subscription_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
 
 networks:
   clusterfuck_network:
@@ -231,6 +261,10 @@ volumes:
   player_redis:
     driver: local
   player_event_redis:
+    driver: local
+  subscription_redis:
+    driver: local
+  subscription_event_redis:
     driver: local
   mariadb_data:
     driver: local

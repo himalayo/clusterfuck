@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"math"
 	"time"
 )
@@ -56,6 +57,7 @@ func getSubscriptionTime(sub *SubscriptionData) *SubscriptionTime {
 }
 
 type UserClubData struct {
+	Type                     string
 	TimeToExpire             *SubscriptionTime
 	MemberPeriods            int
 	PeriodsSubscribedAhead   int
@@ -68,19 +70,24 @@ type UserClubData struct {
 	PastVipDays              int
 }
 
-func NewUserClubData(subscriptions []SubscriptionData, responseType int) *UserClubData {
+func NewUserClubData(ctx context.Context, subscriptions []SubscriptionData, responseType int) *UserClubData {
 	pastTime := calculatePastTime(subscriptions)
 	currentSubscription := getCurrentSubscription(subscriptions, "HABBO_CLUB")
 	subscriptionTime := getSubscriptionTime(currentSubscription)
 	hasEverBeenMember := pastTime > 0
 	isVip := true
-	minutesSinceLastModified := int(float32(int(time.Now().Unix())-currentSubscription.LastModified()) / 60.0)
-	currentSubscription.SetLastModified(int(time.Now().Unix()))
+	minutesSinceLastModified := int(float32(int(time.Now().Unix())-currentSubscription.LastModified(ctx)) / 60.0)
+	currentSubscription.SetLastModified(ctx, int(time.Now().Unix()))
 	pastClubDays := 0
 	pastVipDays := int(float32(pastTime) / 86400.0)
 	memberPeriods := 0
 	periodsSubscribedAhead := 0
+	t := ""
+	if currentSubscription != nil {
+		t = currentSubscription.Type
+	}
 	return &UserClubData{
+		Type:                     t,
 		PastTime:                 pastTime,
 		ResponseType:             responseType,
 		TimeToExpire:             subscriptionTime,
@@ -95,7 +102,21 @@ func NewUserClubData(subscriptions []SubscriptionData, responseType int) *UserCl
 }
 
 func (club *UserClubData) Serialize() []byte {
-	return serializeValues(club.TimeToExpire.Days,
+	return serializeValues(club.Type,
+		club.TimeToExpire.Days,
+		club.MemberPeriods,
+		club.PeriodsSubscribedAhead,
+		club.ResponseType,
+		club.HasEverBeenMember,
+		club.IsVip,
+		club.PastClubDays,
+		club.PastVipDays,
+		club.TimeToExpire.Minutes,
+		club.MinutesSinceLastModified)
+}
+func (club *UserClubData) SerializeWithType(t string) []byte {
+	return serializeValues(t,
+		club.TimeToExpire.Days,
 		club.MemberPeriods,
 		club.PeriodsSubscribedAhead,
 		club.ResponseType,
@@ -107,6 +128,9 @@ func (club *UserClubData) Serialize() []byte {
 		club.MinutesSinceLastModified)
 }
 
-func UserClubComposer(subscriptions []SubscriptionData, responseType int) []byte {
-	return compose(954, NewUserClubData(subscriptions, responseType).Serialize())
+func UserClubComposerWithType(ctx context.Context, subscriptions []SubscriptionData, responseType int, t string) []byte {
+	return compose(954, NewUserClubData(ctx, subscriptions, responseType).SerializeWithType(t))
+}
+func UserClubComposer(ctx context.Context, subscriptions []SubscriptionData, responseType int) []byte {
+	return compose(954, NewUserClubData(ctx, subscriptions, responseType).Serialize())
 }

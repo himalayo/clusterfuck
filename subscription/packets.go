@@ -49,22 +49,35 @@ func appendBool(packet []byte, b bool) []byte {
 }
 
 func appendValue(packet []byte, value any) []byte {
-	switch value.(type) {
+	switch value := value.(type) {
 	case int16:
-		return appendShort(packet, int(value.(int16)))
+		return appendShort(packet, int(value))
 	case int:
-		return appendInt(packet, value.(int))
+		return appendInt(packet, value)
 	case string:
-		return appendString(packet, value.(string))
+		return appendString(packet, value)
 	case bool:
-		return appendBool(packet, value.(bool))
+		return appendBool(packet, value)
 	case []byte:
-		return append(packet, value.([]byte)...)
+		return append(packet, value...)
 	case byte:
-		return append(packet, value.(byte))
+		return append(packet, value)
 	default:
 		return packet
 	}
+}
+
+func ReadShort(data []byte) (int16, []byte) {
+	return int16(binary.BigEndian.Uint16(data[0:2])), data[2:]
+}
+
+func ReadInt(data []byte) (int, []byte) {
+	return int(binary.BigEndian.Uint32(data[0:4])), data[4:]
+}
+
+func ReadString(data []byte) (string, []byte) {
+	length, remainingData := ReadShort(data)
+	return string(remainingData[:length]), remainingData[length:]
 }
 
 func serializeValues(values ...any) []byte {

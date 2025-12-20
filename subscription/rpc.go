@@ -54,12 +54,12 @@ func (s *server) AddDuration(_ context.Context, req *pb.DurationRequest) (*pb.Su
 	return sub.toSubscriptionInstance(), nil
 }
 
-func (s *server) UserClubComposer(_ context.Context, req *pb.SubscriptionRequest) (*pb.Packet, error) {
-	subscriptions, err := s.data.GetUserSubscriptionsByType(int(req.UserId), req.SubscriptionType)
+func (s *server) UserClubComposer(ctx context.Context, req *pb.SubscriptionRequest) (*pb.Packet, error) {
+	subscriptions, err := s.data.GetUserSubscriptionsByType(ctx, int(req.UserId), req.SubscriptionType)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Packet{Data: UserClubComposer(subscriptions, 1)}, nil
+	return &pb.Packet{Data: UserClubComposer(ctx, subscriptions, 1)}, nil
 }
 
 func StartServer(data *Database) {
