@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 func LoginOKComposer() []byte {
 	return compose(2491)
@@ -40,4 +43,21 @@ func FavoriteRoomsCountComposer(maxFavoriteRooms int, favoriteRooms []int) []byt
 
 func UserDataComposer(info *UserInfoComposerData) []byte {
 	return compose(2725, info.Id, info.Username, info.Look, "M", info.Motto, info.Username, false, info.RespectsReceived, info.RespectsGiven, info.DailyPetRespectPoints, false, "01-01-1970 00:00:00", info.AllowNameChange, false)
+}
+
+func UserCreditsComposer(credits int) []byte {
+	return compose(3475, fmt.Sprintf("%d.0", credits))
+}
+
+type UserCurrency struct {
+	Type   int
+	Amount int
+}
+
+func (c UserCurrency) Serialize() []byte {
+	return serializeValues(c.Type, c.Amount)
+}
+
+func UserCurrencyComposer(currencies []UserCurrency) []byte {
+	return compose(2018, SerializeAll(currencies))
 }

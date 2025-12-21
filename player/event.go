@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	events "github.com/himalayo/clusterfuck/api/events"
+	netpb "github.com/himalayo/clusterfuck/api/networking/proto"
 	pb "github.com/himalayo/clusterfuck/api/player/proto"
 	"github.com/redis/go-redis/v9"
 )
@@ -144,9 +148,63 @@ func RegisterIncomingHandlers() {
 	Incoming.RegisterHandler(357, handleUserDataRequest)
 }
 
+func handleUserCreditsRequest(ctx context.Context, evt *netpb.PacketEvent) {
+	go func() {
+		credits, err := Data.GetUserCredits(ctx, evt.Packet.ClientId)
+		if err != nil {
+			return
+		}
+		Net.Send(evt.Packet.ClientId, UserCreditsComposer(credits))
+	}()
+	go func() {
+		var wg sync.WaitGroup
+		var types []int
+		var amounts map[int]int
+		wg.Go(
+			func() {
+				types_str, err := Cfg.GetStringOrDefault("seasonal.types", "0;1;2;3;4;5;101;102;103;104;105")
+				if err != nil {
+					return
+				}
+				typesStr := strings.Split(types_str, ";")
+				for _, typeStr := range typesStr {
+					currencyType, err := strconv.ParseInt(typeStr, 10, 32)
+					if err != nil {
+						continue
+					}
+					types = append(types, int(currencyType))
+				}
+			},
+		)
+		wg.Go(
+			func() {
+				amounts, _ = Data.GetUserCurrencies(ctx, evt.Packet.ClientId)
+			},
+		)
+		wg.Wait()
+		currencies := make([]UserCurrency, len(types))
+		for i, currencyType := range types {
+			amount, ok := amounts[currencyType]
+			if !ok {
+				amount = 0
+			}
+			currencies[i] = UserCurrency{
+				Type:   currencyType,
+				Amount: amount,
+			}
+		}
+		Net.Send(evt.Packet.ClientId, UserCurrencyComposer(currencies))
+	}()
+}
+
+func RegisterRedisHandlers() {
+	Net.RegisterRedisHandler(273, handleUserCreditsRequest)
+}
+
 func (e *EventListener) Listen() {
 	RegisterLoginHandlers(e)
 	RegisterIncomingHandlers()
+	RegisterRedisHandlers()
 	for {
 		select {
 		case ticket := <-e.ticket:

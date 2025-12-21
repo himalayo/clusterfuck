@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -193,6 +194,96 @@ func (data *Database) loadUserRespectData(sso string) *UserRespectData {
 	}()
 
 	return &out
+}
+
+func (data *Database) getCachedUserCurrencies(ctx context.Context, sso string) (map[int]int, error) {
+	m, err := data.cache.HGetAll(ctx, fmt.Sprintf("user_currency:%s", sso)).Result()
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int]int)
+	for k, v := range m {
+		kInt, err := strconv.ParseInt(k, 10, 32)
+		if err != nil {
+			continue
+		}
+		vInt, err := strconv.ParseInt(v, 10, 32)
+		if err != nil {
+			continue
+		}
+		result[int(kInt)] = int(vInt)
+	}
+
+	return result, nil
+}
+
+func (data *Database) GetUserCurrencies(ctx context.Context, sso string) (map[int]int, error) {
+	exists, err := data.cache.Exists(ctx, fmt.Sprintf("user_currency:%s", sso)).Result()
+	if err != nil {
+		return data.loadUserCurrencies(ctx, sso)
+	}
+	if exists != 0 {
+		return data.getCachedUserCurrencies(ctx, sso)
+	}
+	return data.loadUserCurrencies(ctx, sso)
+}
+
+func (data *Database) loadUserCurrencies(ctx context.Context, sso string) (map[int]int, error) {
+	rows, err := data.db.QueryContext(ctx, "SELECT `type`, `amount` FROM users_currency INNER JOIN users ON users.id = users_currency.user_id WHERE users.auth_ticket = ?", sso)
+	if err != nil {
+		log.Printf("data.loadUserCurrenciesById(%s): Got error: %v", sso, err)
+		return nil, err
+	}
+
+	currencies := make(map[int]int)
+
+	for rows.Next() {
+		var currencyType int
+		var amount int
+		if err := rows.Scan(&currencyType, &amount); err != nil {
+			return nil, err
+		}
+		currencies[currencyType] = amount
+		go func() {
+			data.cache.HSet(ctx, fmt.Sprintf("user_currency:%s", sso), currencyType, amount)
+		}()
+	}
+
+	return currencies, nil
+}
+
+func (data *Database) loadUserCredits(ctx context.Context, sso string) (int, error) {
+	var credits int
+	row := data.db.QueryRowContext(ctx, "SELECT `credits` from users where auth_ticket = ?", sso)
+	if err := row.Scan(&credits); err != nil {
+		return 0, nil
+	}
+	go func() {
+		data.cache.Set(ctx, fmt.Sprintf("user_credits:%s", sso), credits, 0)
+	}()
+	return credits, nil
+}
+
+func (data *Database) loadUserCreditsFromCache(ctx context.Context, sso string) (int, error) {
+	credits_str, err := data.cache.Get(ctx, fmt.Sprintf("user_credits:%s", sso)).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	credits, err := strconv.ParseInt(credits_str, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(credits), nil
+}
+
+func (data *Database) GetUserCredits(ctx context.Context, sso string) (int, error) {
+	exists, err := data.cache.Exists(ctx, fmt.Sprintf("user_credits:%s", sso)).Result()
+	if err == nil && exists != 0 {
+		return data.loadUserCreditsFromCache(ctx, sso)
+	}
+	return data.loadUserCredits(ctx, sso)
 }
 
 func (data *Database) loadUserData(sso string) *UserData {

@@ -62,6 +62,8 @@ func appendValue(packet []byte, value any) []byte {
 		return append(packet, value...)
 	case byte:
 		return append(packet, value)
+	case Serializeable:
+		return append(packet, value.Serialize()...)
 	default:
 		return packet
 	}

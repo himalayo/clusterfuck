@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -9,6 +10,7 @@ import (
 
 func RegisterLoginHandlers(e *EventListener) {
 	e.RegisterLoginHandler(sendLoginOK)
+	e.RegisterLoginHandler(setUserId)
 	e.RegisterLoginHandler(sendUserEffects)
 	e.RegisterLoginHandler(sendUserNoobStatus)
 	e.RegisterLoginHandler(sendAvailabilityStatus)
@@ -17,6 +19,12 @@ func RegisterLoginHandlers(e *EventListener) {
 	e.RegisterLoginHandler(sendMysteryBox)
 	e.RegisterLoginHandler(sendBuildersClubExpired)
 	e.RegisterLoginHandler(sendFavoriteRooms)
+}
+
+func setUserId(ctx context.Context, event *LoginEvent) {
+	go func() {
+		Data.cache.Set(ctx, fmt.Sprintf("user_id:%s", event.UserData.AuthTicket), event.UserData.Id, 0).Result()
+	}()
 }
 
 func sendLoginOK(ctx context.Context, event *LoginEvent) {

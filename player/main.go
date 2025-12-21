@@ -30,11 +30,12 @@ var (
 	Ach               = achievements.NewClient()
 	Incoming          = listener.NewIncomingServer()
 	Data              = NewDatabase(ConfigDatabaseFromEnv())
-	Events            = NewEventListener(&redis.Options{
+	events_cfg        = redis.Options{
 		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
 		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
 		DB:       0,
-	})
+	}
+	Events = NewEventListener(&events_cfg)
 )
 
 func main() {
@@ -71,6 +72,13 @@ func main() {
 	}
 
 	go Net.Listen(netAddr)
+	Net.ConnectRedisHandler(
+		events_cfg.Addr,
+		events_cfg.Password,
+		events_cfg.DB,
+		"networking-events",
+		[]int{273},
+	)
 	go Sub.Listen(subAddr)
 	go Perm.Listen(permAddr)
 	go Mod.Listen(modAddr)
