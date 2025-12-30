@@ -42,7 +42,7 @@ func sendUserClubComposer(ctx context.Context, evt *netpb.PacketEvent) {
 		}
 		log.Printf("Got UserClubEvent from %s: Type: %s", evt.Packet.ClientId, subscriptionType)
 
-		Net.Send(evt.Packet.ClientId, UserClubComposerWithType(ctx, subscriptions, 0, subscriptionType))
+		NetPub.Send(ctx, evt.Packet.ClientId, UserClubComposerWithType(ctx, subscriptions, 0, subscriptionType))
 	}()
 }
 
