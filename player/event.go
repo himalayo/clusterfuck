@@ -138,14 +138,13 @@ func (e *EventListener) Login(sso *pb.Ticket) bool {
 	return out
 }
 
-func handleUserDataRequest(sso string, _ []byte) {
-	info := Data.loadUserInfoComposerData(sso)
-	log.Printf("%s: Sending UserDataComposer: %s", sso, info.String())
-	Net.Send(sso, UserDataComposer(info))
+func handleUserDataRequest(ctx context.Context, evt *netpb.PacketEvent) {
+	info := Data.loadUserInfoComposerData(evt.Packet.ClientId)
+	log.Printf("%s: Sending UserDataComposer: %s", evt.Packet.ClientId, info.String())
+	NetPub.Send(ctx, evt.Packet.ClientId, UserDataComposer(info))
 }
 
 func RegisterIncomingHandlers() {
-	Incoming.RegisterHandler(357, handleUserDataRequest)
 }
 
 func handleUserCreditsRequest(ctx context.Context, evt *netpb.PacketEvent) {
@@ -199,6 +198,7 @@ func handleUserCreditsRequest(ctx context.Context, evt *netpb.PacketEvent) {
 
 func RegisterRedisHandlers() {
 	Net.RegisterRedisHandler(273, handleUserCreditsRequest)
+	Net.RegisterRedisHandler(357, handleUserDataRequest)
 }
 
 func (e *EventListener) Listen() {

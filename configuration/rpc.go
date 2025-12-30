@@ -155,7 +155,7 @@ func newNetworkingUpdateEvent(in *pb.InstanceRegistration, eventType string) *Ne
 
 	evt.Values["incoming_headers"] = strings.Join(headers_string_list, ";")
 
-	evt.Values["outgoing_serivce"] = in.Outgoing.Service
+	evt.Values["outgoing_service"] = in.Outgoing.Service
 	evt.Values["outgoing_redis_address"] = in.Outgoing.Instance.GetAddress()
 	evt.Values["outgoing_redis_password"] = in.Outgoing.Instance.GetPassword()
 	evt.Values["outgoing_redis_db"] = in.Outgoing.Instance.GetDb()

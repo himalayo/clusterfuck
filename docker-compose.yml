@@ -121,6 +121,8 @@ services:
     networks:
       - clusterfuck_network
     depends_on:
+      networking:
+        condition: service_started
       mariadb:
         condition: service_healthy
 

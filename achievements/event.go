@@ -17,7 +17,7 @@ func sendInventoryAchievements(ctx context.Context, evt *pb.LoginEvent) {
 		return
 	}
 	log.Printf("Responding to Login Event: %v", evt)
-	Net.Send(evt.UserData.AuthTicket, InventoryAchievementsComposer(achievements))
+	NetPub.Send(ctx, evt.UserData.AuthTicket, InventoryAchievementsComposer(achievements))
 }
 
 func setUserId(ctx context.Context, evt *pb.LoginEvent) {
@@ -123,7 +123,7 @@ func sendAchievementsListComposer(ctx context.Context, evt *netpb.PacketEvent) {
 		packet = appendString(packet, "")
 		packet = addSize(packet)
 
-		Net.Send(evt.Packet.ClientId, packet)
+		NetPub.Send(ctx, evt.Packet.ClientId, packet)
 	}()
 }
 
