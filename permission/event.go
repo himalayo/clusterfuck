@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	netpb "github.com/himalayo/clusterfuck/api/networking/proto"
 	pb "github.com/himalayo/clusterfuck/api/player/proto"
 )
 
@@ -35,14 +36,14 @@ func UserPerksComposer(ps Perks) []byte {
 	return compose(2586, ps)
 }
 
-func handleUserDataRequest(sso string, _ []byte) {
-	userData := Player.GetUserData(sso)
+func handleUserDataRequest(ctx context.Context, evt *netpb.PacketEvent) {
+	userData := Player.GetUserData(evt.Packet.ClientId)
 	perks, err := db.GetRankPerks(int(userData.Rank))
 	if err != nil {
 		return
 	}
-	log.Printf("Sending RankPerks to: %s", sso)
-	Net.Send(sso, UserPerksComposer(perks))
+	log.Printf("Sending RankPerks to: %s", evt.Packet.ClientId)
+	NetPub.Send(ctx, evt.Packet.ClientId, UserPerksComposer(perks))
 }
 
 func sendUserPermissions(ctx context.Context, event *pb.LoginEvent) {
@@ -69,5 +70,5 @@ func RegisterLoginHandlers() {
 }
 
 func RegisterIncomingHandlers() {
-	Incoming.RegisterHandler(357, handleUserDataRequest)
+	Net.RegisterRedisHandler(357, handleUserDataRequest)
 }

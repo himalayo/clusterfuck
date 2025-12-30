@@ -157,6 +157,38 @@ services:
         retries: 3
         timeout: 5s
 
+  permission-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: permission-outgoing-redis
+    container_name: permission-outgoing-redis
+    volumes:
+        - 'permission_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  permission-event-redis:
+    image: 'redis:alpine'
+    hostname: permission-event-redis
+    container_name: permission-event-redis
+    volumes:
+        - 'permission_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
   achievements-redis:
     image: 'redis:alpine'
     hostname: achievements-redis
@@ -351,6 +383,10 @@ volumes:
   configuration_event_redis:
     driver: local
   permission_redis:
+    driver: local
+  permission_outgoing_redis:
+    driver: local
+  permission_event_redis:
     driver: local
   player_redis:
     driver: local
