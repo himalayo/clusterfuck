@@ -38,7 +38,7 @@ const (
 
 func (l *LoginEvent) Send(data []byte) {
 	if data != nil {
-		Net.Send(l.UserData.AuthTicket, data)
+		NetPub.Send(context.Background(), l.UserData.AuthTicket, data)
 	}
 }
 

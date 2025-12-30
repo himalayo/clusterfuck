@@ -29,12 +29,12 @@ func setUserId(ctx context.Context, event *LoginEvent) {
 
 func sendLoginOK(ctx context.Context, event *LoginEvent) {
 	log.Printf("sendLoginOK: %s", event.UserData.AuthTicket)
-	Net.Send(event.UserData.AuthTicket, LoginOKComposer())
+	NetPub.Send(ctx, event.UserData.AuthTicket, LoginOKComposer())
 }
 
 func sendUserNoobStatus(ctx context.Context, event *LoginEvent) {
 	log.Printf("sendUserNoobStatus: %s", event.UserData.AuthTicket)
-	Net.Send(event.UserData.AuthTicket, UserNoobStatusComposer(1))
+	NetPub.Send(ctx, event.UserData.AuthTicket, UserNoobStatusComposer(1))
 }
 
 func sendUserEffects(ctx context.Context, event *LoginEvent) {
@@ -51,27 +51,27 @@ func sendUserEffects(ctx context.Context, event *LoginEvent) {
 		packet = serializeUserEffect(packet, &userEffect)
 	}
 	packet = addSize(packet)
-	Net.Send(event.UserData.AuthTicket, packet)
+	NetPub.Send(ctx, event.UserData.AuthTicket, packet)
 }
 
 func sendAvailabilityStatus(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, AvailabilityStatusComposer(true, false, true))
+	NetPub.Send(ctx, event.UserData.AuthTicket, AvailabilityStatusComposer(true, false, true))
 }
 
 func sendEnableNotifications(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, EnableNotificationsComposer(true))
+	NetPub.Send(ctx, event.UserData.AuthTicket, EnableNotificationsComposer(true))
 }
 
 func sendAchievementScore(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, AchievementScoreComposer(Data.getAchievementScore(event.UserData.Id)))
+	NetPub.Send(ctx, event.UserData.AuthTicket, AchievementScoreComposer(Data.getAchievementScore(event.UserData.Id)))
 }
 
 func sendMysteryBox(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, MysteryBoxComposer())
+	NetPub.Send(ctx, event.UserData.AuthTicket, MysteryBoxComposer())
 }
 
 func sendBuildersClubExpired(ctx context.Context, event *LoginEvent) {
-	Net.Send(event.UserData.AuthTicket, BuildersClubExpiredComposer())
+	NetPub.Send(ctx, event.UserData.AuthTicket, BuildersClubExpiredComposer())
 }
 
 func sendFavoriteRooms(ctx context.Context, event *LoginEvent) {
@@ -86,7 +86,7 @@ func sendFavoriteRooms(ctx context.Context, event *LoginEvent) {
 	}
 	log.Printf("sendFavoriteRoomsComposer: %d %v", maxFavoriteRooms, favoriteRooms)
 
-	Net.Send(event.UserData.AuthTicket, FavoriteRoomsCountComposer(maxFavoriteRooms, favoriteRooms))
+	NetPub.Send(ctx, event.UserData.AuthTicket, FavoriteRoomsCountComposer(maxFavoriteRooms, favoriteRooms))
 }
 
 func serializeUserEffect(packet []byte, effect *UserEffect) []byte {

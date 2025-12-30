@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Configuration_GetBoolean_FullMethodName = "/configuration.Configuration/GetBoolean"
-	Configuration_GetInt_FullMethodName     = "/configuration.Configuration/GetInt"
-	Configuration_GetDouble_FullMethodName  = "/configuration.Configuration/GetDouble"
-	Configuration_GetString_FullMethodName  = "/configuration.Configuration/GetString"
+	Configuration_GetBoolean_FullMethodName                 = "/configuration.Configuration/GetBoolean"
+	Configuration_GetInt_FullMethodName                     = "/configuration.Configuration/GetInt"
+	Configuration_GetDouble_FullMethodName                  = "/configuration.Configuration/GetDouble"
+	Configuration_GetString_FullMethodName                  = "/configuration.Configuration/GetString"
+	Configuration_RegisterService_FullMethodName            = "/configuration.Configuration/RegisterService"
+	Configuration_GetNetworkingConfiguration_FullMethodName = "/configuration.Configuration/GetNetworkingConfiguration"
 )
 
 // ConfigurationClient is the client API for Configuration service.
@@ -33,6 +35,8 @@ type ConfigurationClient interface {
 	GetInt(ctx context.Context, in *ConfigurationRequest, opts ...grpc.CallOption) (*IntConfiguration, error)
 	GetDouble(ctx context.Context, in *ConfigurationRequest, opts ...grpc.CallOption) (*DoubleConfiguration, error)
 	GetString(ctx context.Context, in *ConfigurationRequest, opts ...grpc.CallOption) (*StringConfiguration, error)
+	RegisterService(ctx context.Context, in *InstanceRegistration, opts ...grpc.CallOption) (*RegistrationResult, error)
+	GetNetworkingConfiguration(ctx context.Context, in *NetworkingConfigurationRequest, opts ...grpc.CallOption) (*NetworkingConfiguration, error)
 }
 
 type configurationClient struct {
@@ -83,6 +87,26 @@ func (c *configurationClient) GetString(ctx context.Context, in *ConfigurationRe
 	return out, nil
 }
 
+func (c *configurationClient) RegisterService(ctx context.Context, in *InstanceRegistration, opts ...grpc.CallOption) (*RegistrationResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegistrationResult)
+	err := c.cc.Invoke(ctx, Configuration_RegisterService_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configurationClient) GetNetworkingConfiguration(ctx context.Context, in *NetworkingConfigurationRequest, opts ...grpc.CallOption) (*NetworkingConfiguration, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NetworkingConfiguration)
+	err := c.cc.Invoke(ctx, Configuration_GetNetworkingConfiguration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConfigurationServer is the server API for Configuration service.
 // All implementations must embed UnimplementedConfigurationServer
 // for forward compatibility.
@@ -91,6 +115,8 @@ type ConfigurationServer interface {
 	GetInt(context.Context, *ConfigurationRequest) (*IntConfiguration, error)
 	GetDouble(context.Context, *ConfigurationRequest) (*DoubleConfiguration, error)
 	GetString(context.Context, *ConfigurationRequest) (*StringConfiguration, error)
+	RegisterService(context.Context, *InstanceRegistration) (*RegistrationResult, error)
+	GetNetworkingConfiguration(context.Context, *NetworkingConfigurationRequest) (*NetworkingConfiguration, error)
 	mustEmbedUnimplementedConfigurationServer()
 }
 
@@ -112,6 +138,12 @@ func (UnimplementedConfigurationServer) GetDouble(context.Context, *Configuratio
 }
 func (UnimplementedConfigurationServer) GetString(context.Context, *ConfigurationRequest) (*StringConfiguration, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetString not implemented")
+}
+func (UnimplementedConfigurationServer) RegisterService(context.Context, *InstanceRegistration) (*RegistrationResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterService not implemented")
+}
+func (UnimplementedConfigurationServer) GetNetworkingConfiguration(context.Context, *NetworkingConfigurationRequest) (*NetworkingConfiguration, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNetworkingConfiguration not implemented")
 }
 func (UnimplementedConfigurationServer) mustEmbedUnimplementedConfigurationServer() {}
 func (UnimplementedConfigurationServer) testEmbeddedByValue()                       {}
@@ -206,6 +238,42 @@ func _Configuration_GetString_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Configuration_RegisterService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InstanceRegistration)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigurationServer).RegisterService(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Configuration_RegisterService_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigurationServer).RegisterService(ctx, req.(*InstanceRegistration))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Configuration_GetNetworkingConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NetworkingConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigurationServer).GetNetworkingConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Configuration_GetNetworkingConfiguration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigurationServer).GetNetworkingConfiguration(ctx, req.(*NetworkingConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Configuration_ServiceDesc is the grpc.ServiceDesc for Configuration service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +296,14 @@ var Configuration_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetString",
 			Handler:    _Configuration_GetString_Handler,
+		},
+		{
+			MethodName: "RegisterService",
+			Handler:    _Configuration_RegisterService_Handler,
+		},
+		{
+			MethodName: "GetNetworkingConfiguration",
+			Handler:    _Configuration_GetNetworkingConfiguration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

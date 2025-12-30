@@ -33,6 +33,8 @@ services:
       dockerfile: ./networking/Dockerfile
     restart: always
     depends_on:
+      configuration:
+        condition: service_started
       player-event-redis:
         condition: service_healthy
     networks:
@@ -75,6 +77,8 @@ services:
     networks:
       - clusterfuck_network
     depends_on:
+      networking:
+        condition: service_started
       mariadb:
         condition: service_healthy
 
@@ -131,6 +135,8 @@ services:
     networks:
       - clusterfuck_network
     depends_on:
+      networking:
+        condition: service_started
       mariadb:
         condition: service_healthy
   permission-redis:
@@ -165,12 +171,43 @@ services:
         retries: 3
         timeout: 5s
 
+  achievements-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: achievements-outgoing-redis
+    container_name: achievements-outgoing-redis
+    volumes:
+        - 'achievements_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
   achievements-event-redis:
     image: 'redis:alpine'
     hostname: achievements-event-redis
     container_name: achievements-event-redis
     volumes:
         - 'achievements_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  player-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: player-outgoing-redis
+    container_name: player-outgoing-redis
+    volumes:
+        - 'player_outgoing_redis:/data'
     networks:
         - clusterfuck_network
     healthcheck:
@@ -215,6 +252,38 @@ services:
         retries: 3
         timeout: 5s
     
+  configuration-redis:
+    image: 'redis:alpine'
+    hostname: configuration-redis
+    container_name: configuration-redis
+    volumes:
+        - 'configuration_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  configuration-event-redis:
+    image: 'redis:alpine'
+    hostname: configuration-event-redis
+    container_name: configuration-event-redis
+    volumes:
+        - 'configuration_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
   subscription-redis:
     image: 'redis:alpine'
     hostname: subscription-redis
@@ -230,6 +299,23 @@ services:
             - ping
         retries: 3
         timeout: 5s
+
+  subscription-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: subscription-outgoing-redis
+    container_name: subscription-outgoing-redis
+    volumes:
+        - 'subscription_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
   subscription-event-redis:
     image: 'redis:alpine'
     hostname: subscription-event-redis
@@ -252,17 +338,27 @@ networks:
 
 
 volumes:
+  achievements_outgoing_redis:
+    driver: local
   achievements_event_redis:
     driver: local
   achievements_redis:
+    driver: local
+  configuration_redis:
+    driver: local
+  configuration_event_redis:
     driver: local
   permission_redis:
     driver: local
   player_redis:
     driver: local
+  player_outgoing_redis:
+    driver: local
   player_event_redis:
     driver: local
   subscription_redis:
+    driver: local
+  subscription_outgoing_redis:
     driver: local
   subscription_event_redis:
     driver: local

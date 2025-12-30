@@ -2,15 +2,19 @@ package api
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/himalayo/clusterfuck/api/events"
 	pb "github.com/himalayo/clusterfuck/api/networking/proto"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 )
 
 type Packet struct {
@@ -114,7 +118,7 @@ func (c *NetworkingClient) connectRedisHandler(client pb.NetworkingClient, req *
 		return false
 	}
 
-	c.redis_sub, err = events.NewRedisSubscriber(&redis.Options{
+	err = c.SetRedisSubscriber(&redis.Options{
 		Addr:     req.Redis.GetAddress(),
 		Password: req.Redis.GetPassword(),
 		DB:       int(req.Redis.GetDb()),
@@ -122,8 +126,17 @@ func (c *NetworkingClient) connectRedisHandler(client pb.NetworkingClient, req *
 	if err != nil {
 		return false
 	}
-	go c.redis_sub.Listen(context.Background())
 	return succ.Successful
+}
+
+func (c *NetworkingClient) SetRedisSubscriber(redis_cfg *redis.Options, stream string, group string) error {
+	var err error
+	c.redis_sub, err = events.NewRedisSubscriber(redis_cfg, stream, group)
+	if err != nil {
+		return err
+	}
+	go c.redis_sub.Listen(context.Background())
+	return nil
 }
 
 func (n *NetworkingClient) ConnectHandler(address string, headers []int, application string) {
@@ -165,6 +178,49 @@ func (n *NetworkingClient) RegisterRedisHandler(header int, handler PacketHandle
 		Header:  header,
 		Handler: handler,
 	}
+}
+
+func readShort(data []byte) (int16, []byte) {
+	return int16(binary.BigEndian.Uint16(data[0:2])), data[2:]
+}
+
+type NetworkingPublisher struct {
+	redis       *redis.Client
+	RedisConfig *redis.Options
+}
+
+func NewNetworkingPublisher(redis_cfg *redis.Options) *NetworkingPublisher {
+	return &NetworkingPublisher{
+		redis:       redis.NewClient(redis_cfg),
+		RedisConfig: redis_cfg,
+	}
+}
+
+func (pub *NetworkingPublisher) Send(ctx context.Context, sso string, data []byte) error {
+	var id string
+	id_uuid, err := uuid.NewRandom()
+	if err != nil {
+		id = fmt.Sprintf("%d-%d-%d", rand.Uint64(), rand.Uint64(), rand.Uint64())
+	} else {
+		id = id_uuid.String()
+	}
+	header, _ := readShort(data[4:])
+
+	evt := &pb.PacketEvent{
+		Id:   id,
+		Type: fmt.Sprintf("%d", header),
+		Packet: &pb.Packet{
+			ClientId: sso,
+			Packet:   data,
+		},
+	}
+	serialized, err := proto.Marshal(evt)
+	if err != nil {
+		return err
+	}
+
+	err = pub.redis.Publish(ctx, "network-pubsub-outgoing", serialized).Err()
+	return err
 }
 
 func (n *NetworkingClient) Listen(addr string) {

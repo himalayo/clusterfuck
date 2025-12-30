@@ -12,14 +12,16 @@ import (
 )
 
 type RedisPublisher struct {
-	rdb    *redis.Client
-	Stream string
+	rdb         *redis.Client
+	Stream      string
+	RedisConfig *redis.Options
 }
 
 func NewRedisPublisher(redis_config *redis.Options, stream string) *RedisPublisher {
 	return &RedisPublisher{
-		rdb:    redis.NewClient(redis_config),
-		Stream: stream,
+		rdb:         redis.NewClient(redis_config),
+		Stream:      stream,
+		RedisConfig: redis_config,
 	}
 }
 
@@ -74,7 +76,7 @@ func (b *RedisPublisher) Publish(ctx context.Context, evt Event) error {
 	_, err := b.rdb.XAdd(ctx, &redis.XAddArgs{
 		Stream: b.Stream,
 		Values: evt.GetValues(),
-		MaxLen: 20000,
+		MaxLen: 2000,
 	}).Result()
 
 	return err

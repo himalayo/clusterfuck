@@ -9,6 +9,8 @@ service Configuration {
     rpc GetInt (ConfigurationRequest) returns (IntConfiguration) {}
     rpc GetDouble (ConfigurationRequest) returns (DoubleConfiguration) {}
     rpc GetString (ConfigurationRequest) returns (StringConfiguration) {}
+    rpc RegisterService (InstanceRegistration) returns (RegistrationResult) {}
+    rpc GetNetworkingConfiguration (NetworkingConfigurationRequest) returns (NetworkingConfiguration) {}
 }
 
 message ConfigurationResult {
@@ -35,6 +37,60 @@ message DoubleConfiguration {
 message StringConfiguration {
     string config = 1;
 }
+
+enum RegistrationStatus {
+    CREATED = 0;
+    UPDATED = 1;
+    UNCHANGED = 2;
+}
+
+message RegistrationResult { 
+    bool success = 1;
+    RegistrationStatus status = 2;
+}
+
+message RedisInstance {
+	string address = 1;
+	string password = 2;
+	int32 db = 3;
+}
+
+message RedisStream {
+    string stream = 1;
+    string group = 2;
+    RedisInstance instance = 3;
+}
+
+message IncomingService {
+    string service = 1;
+    RedisStream stream = 2;
+    repeated int32 headers = 3;
+}
+
+message OutgoingService {
+    string service = 1;
+    RedisInstance instance = 2;
+}
+
+message InstanceRegistration {
+    IncomingService incoming = 1;
+    OutgoingService outgoing = 2;
+}
+
+message NetworkingConfigurationEvent {
+    string id = 1;
+    string type = 2;
+    IncomingService incoming = 3;
+    OutgoingService outgoing = 4;
+}
+
+message NetworkingConfiguration {
+    RedisStream update_stream = 1;
+    repeated IncomingService incoming = 2;
+    repeated OutgoingService outgoing = 3;
+}
+
+message NetworkingConfigurationRequest {}
 
 message ConfigurationRequest {
     string key = 1;

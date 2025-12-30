@@ -4,7 +4,10 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+var (
+	data = NewDatabase(ConfigDatabaseFromEnv())
+)
+
 func main() {
-	data := NewDatabase(ConfigDatabaseFromEnv())
 	StartServer(data)
 }

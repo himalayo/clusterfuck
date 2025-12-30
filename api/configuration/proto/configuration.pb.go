@@ -21,6 +21,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type RegistrationStatus int32
+
+const (
+	RegistrationStatus_CREATED   RegistrationStatus = 0
+	RegistrationStatus_UPDATED   RegistrationStatus = 1
+	RegistrationStatus_UNCHANGED RegistrationStatus = 2
+)
+
+// Enum value maps for RegistrationStatus.
+var (
+	RegistrationStatus_name = map[int32]string{
+		0: "CREATED",
+		1: "UPDATED",
+		2: "UNCHANGED",
+	}
+	RegistrationStatus_value = map[string]int32{
+		"CREATED":   0,
+		"UPDATED":   1,
+		"UNCHANGED": 2,
+	}
+)
+
+func (x RegistrationStatus) Enum() *RegistrationStatus {
+	p := new(RegistrationStatus)
+	*p = x
+	return p
+}
+
+func (x RegistrationStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RegistrationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_configuration_proto_enumTypes[0].Descriptor()
+}
+
+func (RegistrationStatus) Type() protoreflect.EnumType {
+	return &file_configuration_proto_enumTypes[0]
+}
+
+func (x RegistrationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RegistrationStatus.Descriptor instead.
+func (RegistrationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{0}
+}
+
 type ConfigurationResult struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Value:
@@ -311,6 +360,506 @@ func (x *StringConfiguration) GetConfig() string {
 	return ""
 }
 
+type RegistrationResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Status        RegistrationStatus     `protobuf:"varint,2,opt,name=status,proto3,enum=configuration.RegistrationStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegistrationResult) Reset() {
+	*x = RegistrationResult{}
+	mi := &file_configuration_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegistrationResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegistrationResult) ProtoMessage() {}
+
+func (x *RegistrationResult) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegistrationResult.ProtoReflect.Descriptor instead.
+func (*RegistrationResult) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RegistrationResult) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RegistrationResult) GetStatus() RegistrationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RegistrationStatus_CREATED
+}
+
+type RedisInstance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Db            int32                  `protobuf:"varint,3,opt,name=db,proto3" json:"db,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RedisInstance) Reset() {
+	*x = RedisInstance{}
+	mi := &file_configuration_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedisInstance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedisInstance) ProtoMessage() {}
+
+func (x *RedisInstance) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RedisInstance.ProtoReflect.Descriptor instead.
+func (*RedisInstance) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RedisInstance) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *RedisInstance) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *RedisInstance) GetDb() int32 {
+	if x != nil {
+		return x.Db
+	}
+	return 0
+}
+
+type RedisStream struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stream        string                 `protobuf:"bytes,1,opt,name=stream,proto3" json:"stream,omitempty"`
+	Group         string                 `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
+	Instance      *RedisInstance         `protobuf:"bytes,3,opt,name=instance,proto3" json:"instance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RedisStream) Reset() {
+	*x = RedisStream{}
+	mi := &file_configuration_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedisStream) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedisStream) ProtoMessage() {}
+
+func (x *RedisStream) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RedisStream.ProtoReflect.Descriptor instead.
+func (*RedisStream) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *RedisStream) GetStream() string {
+	if x != nil {
+		return x.Stream
+	}
+	return ""
+}
+
+func (x *RedisStream) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *RedisStream) GetInstance() *RedisInstance {
+	if x != nil {
+		return x.Instance
+	}
+	return nil
+}
+
+type IncomingService struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Service       string                 `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	Stream        *RedisStream           `protobuf:"bytes,2,opt,name=stream,proto3" json:"stream,omitempty"`
+	Headers       []int32                `protobuf:"varint,3,rep,packed,name=headers,proto3" json:"headers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IncomingService) Reset() {
+	*x = IncomingService{}
+	mi := &file_configuration_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IncomingService) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IncomingService) ProtoMessage() {}
+
+func (x *IncomingService) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IncomingService.ProtoReflect.Descriptor instead.
+func (*IncomingService) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *IncomingService) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *IncomingService) GetStream() *RedisStream {
+	if x != nil {
+		return x.Stream
+	}
+	return nil
+}
+
+func (x *IncomingService) GetHeaders() []int32 {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+type OutgoingService struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Service       string                 `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	Instance      *RedisInstance         `protobuf:"bytes,2,opt,name=instance,proto3" json:"instance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OutgoingService) Reset() {
+	*x = OutgoingService{}
+	mi := &file_configuration_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OutgoingService) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OutgoingService) ProtoMessage() {}
+
+func (x *OutgoingService) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OutgoingService.ProtoReflect.Descriptor instead.
+func (*OutgoingService) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *OutgoingService) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *OutgoingService) GetInstance() *RedisInstance {
+	if x != nil {
+		return x.Instance
+	}
+	return nil
+}
+
+type InstanceRegistration struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Incoming      *IncomingService       `protobuf:"bytes,1,opt,name=incoming,proto3" json:"incoming,omitempty"`
+	Outgoing      *OutgoingService       `protobuf:"bytes,2,opt,name=outgoing,proto3" json:"outgoing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceRegistration) Reset() {
+	*x = InstanceRegistration{}
+	mi := &file_configuration_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceRegistration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceRegistration) ProtoMessage() {}
+
+func (x *InstanceRegistration) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceRegistration.ProtoReflect.Descriptor instead.
+func (*InstanceRegistration) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *InstanceRegistration) GetIncoming() *IncomingService {
+	if x != nil {
+		return x.Incoming
+	}
+	return nil
+}
+
+func (x *InstanceRegistration) GetOutgoing() *OutgoingService {
+	if x != nil {
+		return x.Outgoing
+	}
+	return nil
+}
+
+type NetworkingConfigurationEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Incoming      *IncomingService       `protobuf:"bytes,3,opt,name=incoming,proto3" json:"incoming,omitempty"`
+	Outgoing      *OutgoingService       `protobuf:"bytes,4,opt,name=outgoing,proto3" json:"outgoing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkingConfigurationEvent) Reset() {
+	*x = NetworkingConfigurationEvent{}
+	mi := &file_configuration_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkingConfigurationEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkingConfigurationEvent) ProtoMessage() {}
+
+func (x *NetworkingConfigurationEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkingConfigurationEvent.ProtoReflect.Descriptor instead.
+func (*NetworkingConfigurationEvent) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *NetworkingConfigurationEvent) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *NetworkingConfigurationEvent) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *NetworkingConfigurationEvent) GetIncoming() *IncomingService {
+	if x != nil {
+		return x.Incoming
+	}
+	return nil
+}
+
+func (x *NetworkingConfigurationEvent) GetOutgoing() *OutgoingService {
+	if x != nil {
+		return x.Outgoing
+	}
+	return nil
+}
+
+type NetworkingConfiguration struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UpdateStream  *RedisStream           `protobuf:"bytes,1,opt,name=update_stream,json=updateStream,proto3" json:"update_stream,omitempty"`
+	Incoming      []*IncomingService     `protobuf:"bytes,2,rep,name=incoming,proto3" json:"incoming,omitempty"`
+	Outgoing      []*OutgoingService     `protobuf:"bytes,3,rep,name=outgoing,proto3" json:"outgoing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkingConfiguration) Reset() {
+	*x = NetworkingConfiguration{}
+	mi := &file_configuration_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkingConfiguration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkingConfiguration) ProtoMessage() {}
+
+func (x *NetworkingConfiguration) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkingConfiguration.ProtoReflect.Descriptor instead.
+func (*NetworkingConfiguration) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NetworkingConfiguration) GetUpdateStream() *RedisStream {
+	if x != nil {
+		return x.UpdateStream
+	}
+	return nil
+}
+
+func (x *NetworkingConfiguration) GetIncoming() []*IncomingService {
+	if x != nil {
+		return x.Incoming
+	}
+	return nil
+}
+
+func (x *NetworkingConfiguration) GetOutgoing() []*OutgoingService {
+	if x != nil {
+		return x.Outgoing
+	}
+	return nil
+}
+
+type NetworkingConfigurationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkingConfigurationRequest) Reset() {
+	*x = NetworkingConfigurationRequest{}
+	mi := &file_configuration_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkingConfigurationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkingConfigurationRequest) ProtoMessage() {}
+
+func (x *NetworkingConfigurationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_configuration_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkingConfigurationRequest.ProtoReflect.Descriptor instead.
+func (*NetworkingConfigurationRequest) Descriptor() ([]byte, []int) {
+	return file_configuration_proto_rawDescGZIP(), []int{13}
+}
+
 type ConfigurationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -321,7 +870,7 @@ type ConfigurationRequest struct {
 
 func (x *ConfigurationRequest) Reset() {
 	*x = ConfigurationRequest{}
-	mi := &file_configuration_proto_msgTypes[5]
+	mi := &file_configuration_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +882,7 @@ func (x *ConfigurationRequest) String() string {
 func (*ConfigurationRequest) ProtoMessage() {}
 
 func (x *ConfigurationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_configuration_proto_msgTypes[5]
+	mi := &file_configuration_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +895,7 @@ func (x *ConfigurationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigurationRequest.ProtoReflect.Descriptor instead.
 func (*ConfigurationRequest) Descriptor() ([]byte, []int) {
-	return file_configuration_proto_rawDescGZIP(), []int{5}
+	return file_configuration_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ConfigurationRequest) GetKey() string {
@@ -382,17 +931,54 @@ const file_configuration_proto_rawDesc = "" +
 	"\x13DoubleConfiguration\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\x01R\x06config\"-\n" +
 	"\x13StringConfiguration\x12\x16\n" +
-	"\x06config\x18\x01 \x01(\tR\x06config\"\x8b\x01\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config\"i\n" +
+	"\x12RegistrationResult\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x129\n" +
+	"\x06status\x18\x02 \x01(\x0e2!.configuration.RegistrationStatusR\x06status\"U\n" +
+	"\rRedisInstance\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x0e\n" +
+	"\x02db\x18\x03 \x01(\x05R\x02db\"u\n" +
+	"\vRedisStream\x12\x16\n" +
+	"\x06stream\x18\x01 \x01(\tR\x06stream\x12\x14\n" +
+	"\x05group\x18\x02 \x01(\tR\x05group\x128\n" +
+	"\binstance\x18\x03 \x01(\v2\x1c.configuration.RedisInstanceR\binstance\"y\n" +
+	"\x0fIncomingService\x12\x18\n" +
+	"\aservice\x18\x01 \x01(\tR\aservice\x122\n" +
+	"\x06stream\x18\x02 \x01(\v2\x1a.configuration.RedisStreamR\x06stream\x12\x18\n" +
+	"\aheaders\x18\x03 \x03(\x05R\aheaders\"e\n" +
+	"\x0fOutgoingService\x12\x18\n" +
+	"\aservice\x18\x01 \x01(\tR\aservice\x128\n" +
+	"\binstance\x18\x02 \x01(\v2\x1c.configuration.RedisInstanceR\binstance\"\x8e\x01\n" +
+	"\x14InstanceRegistration\x12:\n" +
+	"\bincoming\x18\x01 \x01(\v2\x1e.configuration.IncomingServiceR\bincoming\x12:\n" +
+	"\boutgoing\x18\x02 \x01(\v2\x1e.configuration.OutgoingServiceR\boutgoing\"\xba\x01\n" +
+	"\x1cNetworkingConfigurationEvent\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12:\n" +
+	"\bincoming\x18\x03 \x01(\v2\x1e.configuration.IncomingServiceR\bincoming\x12:\n" +
+	"\boutgoing\x18\x04 \x01(\v2\x1e.configuration.OutgoingServiceR\boutgoing\"\xd2\x01\n" +
+	"\x17NetworkingConfiguration\x12?\n" +
+	"\rupdate_stream\x18\x01 \x01(\v2\x1a.configuration.RedisStreamR\fupdateStream\x12:\n" +
+	"\bincoming\x18\x02 \x03(\v2\x1e.configuration.IncomingServiceR\bincoming\x12:\n" +
+	"\boutgoing\x18\x03 \x03(\v2\x1e.configuration.OutgoingServiceR\boutgoing\" \n" +
+	"\x1eNetworkingConfigurationRequest\"\x8b\x01\n" +
 	"\x14ConfigurationRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12N\n" +
 	"\x0edefault_result\x18\x02 \x01(\v2\".configuration.ConfigurationResultH\x00R\rdefaultResult\x88\x01\x01B\x11\n" +
-	"\x0f_default_result2\xeb\x02\n" +
+	"\x0f_default_result*=\n" +
+	"\x12RegistrationStatus\x12\v\n" +
+	"\aCREATED\x10\x00\x12\v\n" +
+	"\aUPDATED\x10\x01\x12\r\n" +
+	"\tUNCHANGED\x10\x022\xbf\x04\n" +
 	"\rConfiguration\x12X\n" +
 	"\n" +
 	"GetBoolean\x12#.configuration.ConfigurationRequest\x1a#.configuration.BooleanConfiguration\"\x00\x12P\n" +
 	"\x06GetInt\x12#.configuration.ConfigurationRequest\x1a\x1f.configuration.IntConfiguration\"\x00\x12V\n" +
 	"\tGetDouble\x12#.configuration.ConfigurationRequest\x1a\".configuration.DoubleConfiguration\"\x00\x12V\n" +
-	"\tGetString\x12#.configuration.ConfigurationRequest\x1a\".configuration.StringConfiguration\"\x00B5Z3github.com/himalayo/clusterfuck/configuration/protob\x06proto3"
+	"\tGetString\x12#.configuration.ConfigurationRequest\x1a\".configuration.StringConfiguration\"\x00\x12[\n" +
+	"\x0fRegisterService\x12#.configuration.InstanceRegistration\x1a!.configuration.RegistrationResult\"\x00\x12u\n" +
+	"\x1aGetNetworkingConfiguration\x12-.configuration.NetworkingConfigurationRequest\x1a&.configuration.NetworkingConfiguration\"\x00B5Z3github.com/himalayo/clusterfuck/configuration/protob\x06proto3"
 
 var (
 	file_configuration_proto_rawDescOnce sync.Once
@@ -406,34 +992,60 @@ func file_configuration_proto_rawDescGZIP() []byte {
 	return file_configuration_proto_rawDescData
 }
 
-var file_configuration_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_configuration_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_configuration_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_configuration_proto_goTypes = []any{
-	(*ConfigurationResult)(nil),  // 0: configuration.ConfigurationResult
-	(*BooleanConfiguration)(nil), // 1: configuration.BooleanConfiguration
-	(*IntConfiguration)(nil),     // 2: configuration.IntConfiguration
-	(*DoubleConfiguration)(nil),  // 3: configuration.DoubleConfiguration
-	(*StringConfiguration)(nil),  // 4: configuration.StringConfiguration
-	(*ConfigurationRequest)(nil), // 5: configuration.ConfigurationRequest
+	(RegistrationStatus)(0),                // 0: configuration.RegistrationStatus
+	(*ConfigurationResult)(nil),            // 1: configuration.ConfigurationResult
+	(*BooleanConfiguration)(nil),           // 2: configuration.BooleanConfiguration
+	(*IntConfiguration)(nil),               // 3: configuration.IntConfiguration
+	(*DoubleConfiguration)(nil),            // 4: configuration.DoubleConfiguration
+	(*StringConfiguration)(nil),            // 5: configuration.StringConfiguration
+	(*RegistrationResult)(nil),             // 6: configuration.RegistrationResult
+	(*RedisInstance)(nil),                  // 7: configuration.RedisInstance
+	(*RedisStream)(nil),                    // 8: configuration.RedisStream
+	(*IncomingService)(nil),                // 9: configuration.IncomingService
+	(*OutgoingService)(nil),                // 10: configuration.OutgoingService
+	(*InstanceRegistration)(nil),           // 11: configuration.InstanceRegistration
+	(*NetworkingConfigurationEvent)(nil),   // 12: configuration.NetworkingConfigurationEvent
+	(*NetworkingConfiguration)(nil),        // 13: configuration.NetworkingConfiguration
+	(*NetworkingConfigurationRequest)(nil), // 14: configuration.NetworkingConfigurationRequest
+	(*ConfigurationRequest)(nil),           // 15: configuration.ConfigurationRequest
 }
 var file_configuration_proto_depIdxs = []int32{
-	1, // 0: configuration.ConfigurationResult.boolean_config:type_name -> configuration.BooleanConfiguration
-	2, // 1: configuration.ConfigurationResult.int_config:type_name -> configuration.IntConfiguration
-	3, // 2: configuration.ConfigurationResult.double_config:type_name -> configuration.DoubleConfiguration
-	4, // 3: configuration.ConfigurationResult.string_config:type_name -> configuration.StringConfiguration
-	0, // 4: configuration.ConfigurationRequest.default_result:type_name -> configuration.ConfigurationResult
-	5, // 5: configuration.Configuration.GetBoolean:input_type -> configuration.ConfigurationRequest
-	5, // 6: configuration.Configuration.GetInt:input_type -> configuration.ConfigurationRequest
-	5, // 7: configuration.Configuration.GetDouble:input_type -> configuration.ConfigurationRequest
-	5, // 8: configuration.Configuration.GetString:input_type -> configuration.ConfigurationRequest
-	1, // 9: configuration.Configuration.GetBoolean:output_type -> configuration.BooleanConfiguration
-	2, // 10: configuration.Configuration.GetInt:output_type -> configuration.IntConfiguration
-	3, // 11: configuration.Configuration.GetDouble:output_type -> configuration.DoubleConfiguration
-	4, // 12: configuration.Configuration.GetString:output_type -> configuration.StringConfiguration
-	9, // [9:13] is the sub-list for method output_type
-	5, // [5:9] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	2,  // 0: configuration.ConfigurationResult.boolean_config:type_name -> configuration.BooleanConfiguration
+	3,  // 1: configuration.ConfigurationResult.int_config:type_name -> configuration.IntConfiguration
+	4,  // 2: configuration.ConfigurationResult.double_config:type_name -> configuration.DoubleConfiguration
+	5,  // 3: configuration.ConfigurationResult.string_config:type_name -> configuration.StringConfiguration
+	0,  // 4: configuration.RegistrationResult.status:type_name -> configuration.RegistrationStatus
+	7,  // 5: configuration.RedisStream.instance:type_name -> configuration.RedisInstance
+	8,  // 6: configuration.IncomingService.stream:type_name -> configuration.RedisStream
+	7,  // 7: configuration.OutgoingService.instance:type_name -> configuration.RedisInstance
+	9,  // 8: configuration.InstanceRegistration.incoming:type_name -> configuration.IncomingService
+	10, // 9: configuration.InstanceRegistration.outgoing:type_name -> configuration.OutgoingService
+	9,  // 10: configuration.NetworkingConfigurationEvent.incoming:type_name -> configuration.IncomingService
+	10, // 11: configuration.NetworkingConfigurationEvent.outgoing:type_name -> configuration.OutgoingService
+	8,  // 12: configuration.NetworkingConfiguration.update_stream:type_name -> configuration.RedisStream
+	9,  // 13: configuration.NetworkingConfiguration.incoming:type_name -> configuration.IncomingService
+	10, // 14: configuration.NetworkingConfiguration.outgoing:type_name -> configuration.OutgoingService
+	1,  // 15: configuration.ConfigurationRequest.default_result:type_name -> configuration.ConfigurationResult
+	15, // 16: configuration.Configuration.GetBoolean:input_type -> configuration.ConfigurationRequest
+	15, // 17: configuration.Configuration.GetInt:input_type -> configuration.ConfigurationRequest
+	15, // 18: configuration.Configuration.GetDouble:input_type -> configuration.ConfigurationRequest
+	15, // 19: configuration.Configuration.GetString:input_type -> configuration.ConfigurationRequest
+	11, // 20: configuration.Configuration.RegisterService:input_type -> configuration.InstanceRegistration
+	14, // 21: configuration.Configuration.GetNetworkingConfiguration:input_type -> configuration.NetworkingConfigurationRequest
+	2,  // 22: configuration.Configuration.GetBoolean:output_type -> configuration.BooleanConfiguration
+	3,  // 23: configuration.Configuration.GetInt:output_type -> configuration.IntConfiguration
+	4,  // 24: configuration.Configuration.GetDouble:output_type -> configuration.DoubleConfiguration
+	5,  // 25: configuration.Configuration.GetString:output_type -> configuration.StringConfiguration
+	6,  // 26: configuration.Configuration.RegisterService:output_type -> configuration.RegistrationResult
+	13, // 27: configuration.Configuration.GetNetworkingConfiguration:output_type -> configuration.NetworkingConfiguration
+	22, // [22:28] is the sub-list for method output_type
+	16, // [16:22] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_configuration_proto_init() }
@@ -447,19 +1059,20 @@ func file_configuration_proto_init() {
 		(*ConfigurationResult_DoubleConfig)(nil),
 		(*ConfigurationResult_StringConfig)(nil),
 	}
-	file_configuration_proto_msgTypes[5].OneofWrappers = []any{}
+	file_configuration_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_configuration_proto_rawDesc), len(file_configuration_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   6,
+			NumEnums:      1,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_configuration_proto_goTypes,
 		DependencyIndexes: file_configuration_proto_depIdxs,
+		EnumInfos:         file_configuration_proto_enumTypes,
 		MessageInfos:      file_configuration_proto_msgTypes,
 	}.Build()
 	File_configuration_proto = out.File

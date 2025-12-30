@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"log"
 	"os"
 
 	achievements "github.com/himalayo/clusterfuck/api/achievements"
@@ -37,6 +39,7 @@ var (
 	}
 	Events = NewEventListener(&events_cfg)
 )
+var NetPub *networking.NetworkingPublisher
 
 func main() {
 	flag.Parse()
@@ -70,19 +73,50 @@ func main() {
 	if !present {
 		achAddr = *achievementsAddr
 	}
+	NetPub = networking.NewNetworkingPublisher(&redis.Options{
+		Addr:     os.Getenv("PLAYER_OUTGOING_REDIS_ADDR"),
+		Password: os.Getenv("PLAYER_OUTGOING_REDIS_PASSWORD"),
+		DB:       0,
+	})
+
+	go func() {
+		Cfg.Listen(confAddr)
+
+		res, err := Cfg.RegisterService(context.Background(), "player-service", configuration.RedisStreamData{
+			Stream: "networking-events",
+			Group:  "player-service",
+			Instance: &redis.Options{
+				Addr:     events_cfg.Addr,
+				Password: events_cfg.Password,
+				DB:       events_cfg.DB,
+			},
+		}, []int{273}, NetPub.RedisConfig)
+		if err != nil {
+			log.Printf("Got error while registering service: %v", err)
+		}
+		log.Printf("Success: %v Status: %v", res.Success, res.Status)
+	}()
 
 	go Net.Listen(netAddr)
-	Net.ConnectRedisHandler(
-		events_cfg.Addr,
-		events_cfg.Password,
-		events_cfg.DB,
-		"networking-events",
-		[]int{273},
-	)
+	err := Net.SetRedisSubscriber(&redis.Options{
+		Addr:     events_cfg.Addr,
+		Password: events_cfg.Password,
+		DB:       events_cfg.DB,
+	}, "networking-events", "player-service")
+	if err != nil {
+		log.Printf("Got error setting Redis Subscriber for networking client: %v", err)
+	}
+
+	// Net.ConnectRedisHandler(
+	// 	events_cfg.Addr,
+	// 	events_cfg.Password,
+	// 	events_cfg.DB,
+	// 	"networking-events",
+	// 	[]int{273},
+	// )
 	go Sub.Listen(subAddr)
 	go Perm.Listen(permAddr)
 	go Mod.Listen(modAddr)
-	go Cfg.Listen(confAddr)
 	go Ach.Listen(achAddr)
 	go Data.Listen()
 	go Events.Listen()
