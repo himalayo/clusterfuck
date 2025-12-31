@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package catalog;
+
+option go_package = "github.com/himalayo/clusterfuck/api/catalog/proto";
+
+service Catalog {
+    rpc GetCatalogPage (CatalogPageRequest) returns (CatalogPage) {}
+}
+
+message CatalogPageRequest {
+    oneof request {
+        int32 page_id = 1;
+        string caption_safe = 2;
+        string layout_name = 3;
+    }
+}
+
+message CatalogPage {
+    int32 id = 1;
+    int32 parent_id = 2;
+    int32 rank = 3;
+    string caption = 4;
+    string page_name = 5;
+    int32 icon_color = 6;
+    int32 icon_image = 7;
+    int32 order_num = 8;
+    bool visible = 9;
+    bool enabled = 10;
+    bool club_only = 11;
+    string layout = 12;
+    string header_image = 13;
+    string teaser_image = 14;
+    string special_image = 15;
+    string text_one = 16;
+    string text_two = 17;
+    string text_details = 18;
+    string text_teaser = 19;
+}
