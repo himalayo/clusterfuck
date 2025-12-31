@@ -96,6 +96,22 @@ services:
       mariadb:
         condition: service_healthy
   
+  catalog:
+    env_file: docker.env
+    container_name: catalot
+    hostname: catalog
+    build:
+      context: ./
+      dockerfile: ./catalog/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      networking:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+
   guilds:
     env_file: docker.env
     container_name: guilds
@@ -285,12 +301,61 @@ services:
             - ping
         retries: 3
         timeout: 5s
+
   achievements-event-redis:
     image: 'redis:alpine'
     hostname: achievements-event-redis
     container_name: achievements-event-redis
     volumes:
         - 'achievements_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  catalog-redis:
+    image: 'redis:alpine'
+    hostname: catalog-redis
+    container_name: catalog-redis
+    volumes:
+        - 'catalog_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  catalog-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: catalog-outgoing-redis
+    container_name: catalog-outgoing-redis
+    volumes:
+        - 'catalog_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  catalog-event-redis:
+    image: 'redis:alpine'
+    hostname: catalog-event-redis
+    container_name: catalog-event-redis
+    volumes:
+        - 'catalog_event_redis:/data'
     networks:
         - clusterfuck_network
     healthcheck:
@@ -442,6 +507,12 @@ volumes:
   achievements_event_redis:
     driver: local
   achievements_redis:
+    driver: local
+  catalog_outgoing_redis:
+    driver: local
+  catalog_event_redis:
+    driver: local
+  catalog_redis:
     driver: local
   configuration_redis:
     driver: local
