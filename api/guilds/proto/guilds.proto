@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package configuration;
+
+option go_package = "github.com/himalayo/clusterfuck/api/guilds/proto";
+
+service Guilds {
+    rpc GetBases (Empty) returns (GuildParts) {}
+    rpc GetSymbols (Empty) returns (GuildParts) {}
+    rpc GetBaseColors (Empty) returns (GuildParts) {}
+    rpc GetSymbolColors (Empty) returns (GuildParts) {}
+    rpc GetBackgroundColors (Empty) returns (GuildParts) {}
+}
+
+message Empty {
+
+}
+
+message GuildPart {
+    int32 id = 1;
+    string value_a = 2;
+    string value_b = 3;
+}
+
+message GuildParts {
+    repeated GuildPart parts = 1;
+}

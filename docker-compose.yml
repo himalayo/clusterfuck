@@ -95,6 +95,22 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+  
+  guilds:
+    env_file: docker.env
+    container_name: guilds
+    hostname: guilds
+    build:
+      context: ./
+      dockerfile: ./guilds/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      networking:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
 
   modtool:
     env_file: docker.env
@@ -141,6 +157,55 @@ services:
         condition: service_started
       mariadb:
         condition: service_healthy
+
+  guilds-redis:
+    image: 'redis:alpine'
+    hostname: guilds-redis
+    container_name: guilds-redis
+    volumes:
+        - 'guilds_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  guilds-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: guilds-outgoing-redis
+    container_name: guilds-outgoing-redis
+    volumes:
+        - 'guilds_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  guilds-event-redis:
+    image: 'redis:alpine'
+    hostname: guilds-event-redis
+    container_name: guilds-event-redis
+    volumes:
+        - 'guilds_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
   permission-redis:
     image: 'redis:alpine'
     hostname: permission-redis
@@ -381,6 +446,12 @@ volumes:
   configuration_redis:
     driver: local
   configuration_event_redis:
+    driver: local
+  guilds_redis:
+    driver: local
+  guilds_outgoing_redis:
+    driver: local
+  guilds_event_redis:
     driver: local
   permission_redis:
     driver: local
