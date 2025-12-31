@@ -155,18 +155,42 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 		Enabled:  true,
 	}
 
-	rows, err := data.db.QueryContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser` FROM catalog_pages ORDER BY parent_id, id")
+	rows, err := data.db.QueryContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser` FROM catalog_pages ORDER BY parent_id, id")
 	if err != nil {
+		log.Printf("LoadCatalogPagesFromDB(): Got error: %v", err)
 		return pages, err
 	}
 	pipe := data.rdb.Pipeline()
 
 	for rows.Next() {
 		var page CatalogPage
-		if err := rows.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &page.SpecialImage, &page.TextOne, &page.TextTwo, &page.TextDetails, &page.TextTeaser); err != nil {
-			log.Printf("LoadCatalogPagesdFromDB(): Got error while scanning result: %v", err)
+		var TextOne sql.NullString
+		var TextTwo sql.NullString
+		var TextDetails sql.NullString
+		var TextTeaser sql.NullString
+		var SpecialImage sql.NullString
+		if err := rows.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &SpecialImage, &TextOne, &TextTwo, &TextDetails, &TextTeaser); err != nil {
+			log.Printf("LoadCatalogPagesFromDB(): Got error while scanning result: %v", err)
 			continue
 		}
+		if TextOne.Valid {
+			page.TextOne = TextOne.String
+		}
+		if TextTwo.Valid {
+			page.TextTwo = TextTwo.String
+		}
+		if TextDetails.Valid {
+			page.TextDetails = TextDetails.String
+		}
+		if TextTeaser.Valid {
+			page.TextTeaser = TextTeaser.String
+		}
+		if SpecialImage.Valid {
+			page.SpecialImage = SpecialImage.String
+		}
+
+		log.Printf("Loaded: ID: %d, Name: %s, Caption: %s", page.Id, page.PageName, page.Caption)
+
 		pages[page.Id] = page
 		pipe.HSet(ctx, fmt.Sprintf("catalog_pages:%d", page.Id), page)
 		pipe.SAdd(ctx, fmt.Sprintf("catalog_pages_by_parent:%d", page.ParentId), page.Id)
@@ -192,10 +216,30 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 
 func (data *Database) loadCatalogPageByIdFromDB(ctx context.Context, pageId int) (*CatalogPage, error) {
 	var page CatalogPage
-	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser` FROM catalog_pages WHERE `id` = ? ", pageId)
-	if err := row.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &page.SpecialImage, &page.TextOne, &page.TextTwo, &page.TextDetails, &page.TextTeaser); err != nil {
+	var TextOne sql.NullString
+	var TextTwo sql.NullString
+	var TextDetails sql.NullString
+	var TextTeaser sql.NullString
+	var SpecialImage sql.NullString
+	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser`,  FROM catalog_pages WHERE `id` = ? ", pageId)
+	if err := row.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &SpecialImage, &TextOne, &TextTwo, &TextDetails, &TextTeaser); err != nil {
 		log.Printf("loadCatalogPageByIdFromDB(): Got error while scanning result: %v", err)
 		return nil, err
+	}
+	if TextOne.Valid {
+		page.TextOne = TextOne.String
+	}
+	if TextTwo.Valid {
+		page.TextTwo = TextTwo.String
+	}
+	if TextDetails.Valid {
+		page.TextDetails = TextDetails.String
+	}
+	if TextTeaser.Valid {
+		page.TextTeaser = TextTeaser.String
+	}
+	if SpecialImage.Valid {
+		page.SpecialImage = SpecialImage.String
 	}
 	if err := data.rdb.HSet(ctx, fmt.Sprintf("catalog_pages:%d", page.Id), page).Err(); err != nil {
 		log.Printf("loadCatalogPageByIdFromDB(): Got error while caching result: %v", err)
@@ -231,10 +275,30 @@ func (data *Database) GetCatalogPageByPageId(ctx context.Context, pageId int) (*
 
 func (data *Database) loadCatalogPageByNameFromDB(ctx context.Context, pageName string) (*CatalogPage, error) {
 	var page CatalogPage
-	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser` FROM catalog_pages WHERE `caption_save` = ? LIMIT 1", pageName)
-	if err := row.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &page.SpecialImage, &page.TextOne, &page.TextTwo, &page.TextDetails, &page.TextTeaser); err != nil {
+	var TextOne sql.NullString
+	var TextTwo sql.NullString
+	var TextDetails sql.NullString
+	var TextTeaser sql.NullString
+	var SpecialImage sql.NullString
+	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser`,  FROM catalog_pages WHERE `caption_save` = ? LIMIT 1", pageName)
+	if err := row.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &SpecialImage, &TextOne, &TextTwo, &TextDetails, &TextTeaser); err != nil {
 		log.Printf("loadCatalogPageByIdFromDB(): Got error while scanning result: %v", err)
 		return nil, err
+	}
+	if TextOne.Valid {
+		page.TextOne = TextOne.String
+	}
+	if TextTwo.Valid {
+		page.TextTwo = TextTwo.String
+	}
+	if TextDetails.Valid {
+		page.TextDetails = TextDetails.String
+	}
+	if TextTeaser.Valid {
+		page.TextTeaser = TextTeaser.String
+	}
+	if SpecialImage.Valid {
+		page.SpecialImage = SpecialImage.String
 	}
 	go data.LoadCatalogPagesFromDB(ctx)
 	return &page, nil
@@ -252,10 +316,30 @@ func (data *Database) GetCatalogPageByName(ctx context.Context, pageName string)
 
 func (data *Database) loadCatalogPageByLayoutFromDB(ctx context.Context, layout string) (*CatalogPage, error) {
 	var page CatalogPage
-	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser` FROM catalog_pages WHERE `page_layout` = ? LIMIT 1", layout)
+	var TextOne sql.NullString
+	var TextTwo sql.NullString
+	var TextDetails sql.NullString
+	var TextTeaser sql.NullString
+	var SpecialImage sql.NullString
+	row := data.db.QueryRowContext(ctx, "SELECT `id`, `parent_id`, `min_rank`, `caption`, `caption_save`, `icon_color`, `icon_image`, `order_num`, `visible`, `enabled`, `club_only`, `page_layout`, `page_headline`, `page_teaser`, `page_special`, `page_text1`, `page_text2`, `page_text_details`, `page_text_teaser`  FROM catalog_pages WHERE `page_layout` = ? LIMIT 1", layout)
 	if err := row.Scan(&page.Id, &page.ParentId, &page.Rank, &page.Caption, &page.PageName, &page.IconColor, &page.IconImage, &page.OrderNum, &page.Visible, &page.Enabled, &page.ClubOnly, &page.Layout, &page.HeaderImage, &page.TeaserImage, &page.SpecialImage, &page.TextOne, &page.TextTwo, &page.TextDetails, &page.TextTeaser); err != nil {
 		log.Printf("loadCatalogPageByIdFromDB(): Got error while scanning result: %v", err)
 		return nil, err
+	}
+	if TextOne.Valid {
+		page.TextOne = TextOne.String
+	}
+	if TextTwo.Valid {
+		page.TextTwo = TextTwo.String
+	}
+	if TextDetails.Valid {
+		page.TextDetails = TextDetails.String
+	}
+	if TextTeaser.Valid {
+		page.TextTeaser = TextTeaser.String
+	}
+	if SpecialImage.Valid {
+		page.SpecialImage = SpecialImage.String
 	}
 	go data.LoadCatalogPagesFromDB(ctx)
 	return &page, nil

@@ -98,7 +98,7 @@ services:
   
   catalog:
     env_file: docker.env
-    container_name: catalot
+    container_name: catalog
     hostname: catalog
     build:
       context: ./
