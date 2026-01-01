@@ -56,6 +56,12 @@ func (n *PlayerClient) GetUserData(sso string) *pb.UserData {
 	return n.sendUserDataRequest(&pb.Ticket{Sso: sso})
 }
 
+func (n *PlayerClient) GetUserHCData(ctx context.Context, sso string) (*pb.UserHCData, error) {
+	return n.client.GetUserHCData(ctx, &pb.Ticket{
+		Sso: sso,
+	})
+}
+
 func getRedisMapInt(values map[string]interface{}, key string) int64 {
 
 	out, err := strconv.ParseInt(values[key].(string), 10, 32)

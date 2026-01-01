@@ -41,6 +41,13 @@ func (n *SubscriptionClient) GetSubscriptions(userId int) []*pb.SubscriptionInst
 	return subs
 }
 
+func (n *SubscriptionClient) GetSessionSubscriptions(ctx context.Context, sso string, subscriptionType string) (*pb.Subscriptions, error) {
+	return n.client.GetSessionSubscriptions(ctx, &pb.SessionSubscriptionRequest{
+		AuthTicket:       sso,
+		SubscriptionType: subscriptionType,
+	})
+}
+
 func (n *SubscriptionClient) UserHasSubscription(userId int, subscriptionType string) bool {
 	n.checkClub <- &pb.SubscriptionRequest{UserId: int32(userId), SubscriptionType: subscriptionType}
 	result := <-n.HasSubscription

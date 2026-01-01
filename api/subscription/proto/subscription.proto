@@ -10,6 +10,12 @@ service Subscription {
 	rpc SetActive (ActivationRequest) returns (SubscriptionInstance) {}
 	rpc UserHasSubscription (SubscriptionRequest) returns (HasSubscriptionResponse) {}
 	rpc UserClubComposer (SubscriptionRequest) returns (Packet) {}
+	rpc GetSessionSubscriptions (SessionSubscriptionRequest) returns (Subscriptions) {}
+}
+
+message SessionSubscriptionRequest {
+	string auth_ticket = 1;
+	string subscription_type = 2;
 }
 
 message SubscriptionRequest {

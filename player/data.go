@@ -217,6 +217,31 @@ func (data *Database) getCachedUserCurrencies(ctx context.Context, sso string) (
 	return result, nil
 }
 
+type UserHCData struct {
+	LastHCPayday   int `redis:"last_hc_payday"`
+	HCGiftsClaimed int `redis:"hc_gifts_claimed"`
+}
+
+func (data *Database) cacheUserHCData(ctx context.Context, sso string) error {
+	var u UserHCData
+	row := data.db.QueryRowContext(ctx, "SELECT `last_hc_payday`, `hc_gifts_claimed` FROM users_settings INNER JOIN users ON users_settings.user_id = users.id WHERE users.auth_ticket = ?", sso)
+	if err := row.Scan(&u.LastHCPayday, &u.HCGiftsClaimed); err != nil {
+		log.Printf("cacheUserHCData(): Got error while loading HC Data: %v", err)
+		return err
+	}
+	err := data.cache.HSet(ctx, fmt.Sprintf("user_club_data:%s", sso), u).Err()
+	return err
+}
+
+func (data *Database) GetUserHCData(ctx context.Context, sso string) (*UserHCData, error) {
+	var u UserHCData
+	err := data.cache.HGetAll(ctx, fmt.Sprintf("user_club_data:%s", sso)).Scan(&u)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (data *Database) GetUserCurrencies(ctx context.Context, sso string) (map[int]int, error) {
 	exists, err := data.cache.Exists(ctx, fmt.Sprintf("user_currency:%s", sso)).Result()
 	if err != nil {

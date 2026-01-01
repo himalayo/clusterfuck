@@ -24,6 +24,7 @@ const (
 	Subscription_SetActive_FullMethodName               = "/subscription.Subscription/SetActive"
 	Subscription_UserHasSubscription_FullMethodName     = "/subscription.Subscription/UserHasSubscription"
 	Subscription_UserClubComposer_FullMethodName        = "/subscription.Subscription/UserClubComposer"
+	Subscription_GetSessionSubscriptions_FullMethodName = "/subscription.Subscription/GetSessionSubscriptions"
 )
 
 // SubscriptionClient is the client API for Subscription service.
@@ -35,6 +36,7 @@ type SubscriptionClient interface {
 	SetActive(ctx context.Context, in *ActivationRequest, opts ...grpc.CallOption) (*SubscriptionInstance, error)
 	UserHasSubscription(ctx context.Context, in *SubscriptionRequest, opts ...grpc.CallOption) (*HasSubscriptionResponse, error)
 	UserClubComposer(ctx context.Context, in *SubscriptionRequest, opts ...grpc.CallOption) (*Packet, error)
+	GetSessionSubscriptions(ctx context.Context, in *SessionSubscriptionRequest, opts ...grpc.CallOption) (*Subscriptions, error)
 }
 
 type subscriptionClient struct {
@@ -95,6 +97,16 @@ func (c *subscriptionClient) UserClubComposer(ctx context.Context, in *Subscript
 	return out, nil
 }
 
+func (c *subscriptionClient) GetSessionSubscriptions(ctx context.Context, in *SessionSubscriptionRequest, opts ...grpc.CallOption) (*Subscriptions, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Subscriptions)
+	err := c.cc.Invoke(ctx, Subscription_GetSessionSubscriptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SubscriptionServer is the server API for Subscription service.
 // All implementations must embed UnimplementedSubscriptionServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type SubscriptionServer interface {
 	SetActive(context.Context, *ActivationRequest) (*SubscriptionInstance, error)
 	UserHasSubscription(context.Context, *SubscriptionRequest) (*HasSubscriptionResponse, error)
 	UserClubComposer(context.Context, *SubscriptionRequest) (*Packet, error)
+	GetSessionSubscriptions(context.Context, *SessionSubscriptionRequest) (*Subscriptions, error)
 	mustEmbedUnimplementedSubscriptionServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedSubscriptionServer) UserHasSubscription(context.Context, *Sub
 }
 func (UnimplementedSubscriptionServer) UserClubComposer(context.Context, *SubscriptionRequest) (*Packet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserClubComposer not implemented")
+}
+func (UnimplementedSubscriptionServer) GetSessionSubscriptions(context.Context, *SessionSubscriptionRequest) (*Subscriptions, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSessionSubscriptions not implemented")
 }
 func (UnimplementedSubscriptionServer) mustEmbedUnimplementedSubscriptionServer() {}
 func (UnimplementedSubscriptionServer) testEmbeddedByValue()                      {}
@@ -240,6 +256,24 @@ func _Subscription_UserClubComposer_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Subscription_GetSessionSubscriptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubscriptionServer).GetSessionSubscriptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Subscription_GetSessionSubscriptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubscriptionServer).GetSessionSubscriptions(ctx, req.(*SessionSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Subscription_ServiceDesc is the grpc.ServiceDesc for Subscription service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var Subscription_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserClubComposer",
 			Handler:    _Subscription_UserClubComposer_Handler,
+		},
+		{
+			MethodName: "GetSessionSubscriptions",
+			Handler:    _Subscription_GetSessionSubscriptions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

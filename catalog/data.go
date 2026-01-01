@@ -5,11 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
+	subpb "github.com/himalayo/clusterfuck/api/subscription/proto"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -213,6 +217,149 @@ func (catalogItem *CatalogItem) toBytes() []byte {
 	return xs
 }
 
+func (i CatalogItem) Serialize() []byte {
+	return []byte(i.Serialized)
+}
+
+type CatalogGifts []CatalogItem
+
+func (xs CatalogGifts) ToClubGiftItems(DaysAsHC int) []*ClubGiftItem {
+	out := make([]*ClubGiftItem, len(xs))
+	for i, x := range xs {
+		out[i] = x.ToClubGiftItem(DaysAsHC)
+	}
+	return out
+}
+
+type ClubGiftsComposerData struct {
+	DaysTillNextGift int
+	AvailableGifts   int
+	DaysAsHC         int
+	ClubGifts        []CatalogItem
+}
+
+func minZero(x int) int {
+	if x < 0 {
+		return 0
+	}
+	return x
+}
+
+func calculateRemaining(sub *subpb.SubscriptionInstance) int {
+	return int(sub.TimestampStart+sub.Duration) - int(time.Now().Unix())
+}
+
+func calculatePastTime(subs []*subpb.SubscriptionInstance) int {
+	pastTimeAsHC := 0
+	for _, sub := range subs {
+		pastTimeAsHC += int(sub.Duration) - minZero(calculateRemaining(sub))
+	}
+	return pastTimeAsHC
+}
+
+func calculateTotalGifts(pastTimeAsHC int) int {
+	return int(math.Ceil(float64(pastTimeAsHC) / 2678400.0))
+}
+
+func calculateTimeTillNextClubGift(pastTimeAsHC int, totalGifts int) int {
+	return (totalGifts * 2678400) - pastTimeAsHC
+}
+
+func calculateRemainingClubGifts(claimedGifts int, totalGifts int) int {
+	return totalGifts - claimedGifts
+}
+
+func (data *Database) GetClubGiftsComposerData(ctx context.Context, session string) (*ClubGiftsComposerData, error) {
+	var wg sync.WaitGroup
+	var subscriptions []*subpb.SubscriptionInstance
+	var items []CatalogItem
+	err_ch := make(chan error, 3)
+	hcGifts := 0
+	wg.Go(
+		func() {
+			subscriptionList, err := Sub.GetSessionSubscriptions(ctx, session, "HABBO_CLUB")
+			if err != nil {
+				err_ch <- err
+				return
+			}
+			if subscriptionList != nil {
+				subscriptions = subscriptionList.Subscriptions
+			}
+			err_ch <- err
+		},
+	)
+	wg.Go(
+		func() {
+			hcData, err := Player.GetUserHCData(ctx, session)
+			if hcData != nil {
+				hcGifts = int(hcData.HcGiftsClaimed)
+			}
+			err_ch <- err
+		},
+	)
+	wg.Go(
+		func() {
+			page, err := data.GetCatalogPageByLayout(ctx, "club_gift")
+			if err != nil {
+				err_ch <- err
+				return
+			}
+			items, err = data.GetCatalogItemsByPage(ctx, page.Id)
+			err_ch <- err
+		},
+	)
+	wg.Wait()
+	close(err_ch)
+	for err := range err_ch {
+		if err != nil {
+			log.Printf("GetClubGiftsComposerData(): Got error: %v", err)
+			return nil, err
+		}
+	}
+	pastTimeAsHC := calculatePastTime(subscriptions)
+	totalGifts := calculateTotalGifts(pastTimeAsHC)
+	timeTillNextClubGift := calculateTimeTillNextClubGift(pastTimeAsHC, totalGifts)
+	AvailableGifts := calculateRemainingClubGifts(hcGifts, totalGifts)
+	DaysTillNextGift := int(math.Floor(float64(timeTillNextClubGift) / 86400.0))
+	DaysAsHC := int(math.Floor(float64(pastTimeAsHC) / 86400.0))
+	return &ClubGiftsComposerData{
+		DaysTillNextGift: DaysTillNextGift,
+		AvailableGifts:   AvailableGifts,
+		DaysAsHC:         DaysAsHC,
+		ClubGifts:        items,
+	}, nil
+}
+
+func (x *ClubGiftsComposerData) Serialize() []byte {
+	return serializeValues(x.DaysTillNextGift, x.AvailableGifts, SerializeAll(x.ClubGifts), SerializeAll(CatalogGifts(x.ClubGifts).ToClubGiftItems(x.DaysAsHC)))
+}
+
+type ClubGiftItem struct {
+	ItemId       int
+	ClubOnly     bool
+	DaysRequired int
+	Available    bool
+}
+
+func (gift *ClubGiftItem) Serialize() []byte {
+	return serializeValues(gift.ItemId, gift.ClubOnly, gift.DaysRequired, gift.Available)
+}
+
+func (item *CatalogItem) ToClubGiftItem(DaysAsHC int) *ClubGiftItem {
+	daysRequired := 0
+	days_i64, err := strconv.ParseInt(item.Extradata, 10, 32)
+	if err == nil {
+		daysRequired = int(days_i64)
+	}
+	available := daysRequired <= DaysAsHC
+	return &ClubGiftItem{
+		ItemId:       item.Id,
+		ClubOnly:     item.ClubOnly,
+		DaysRequired: daysRequired,
+		Available:    available,
+	}
+}
+
 func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem, error) {
 	items := make([]CatalogItem, 0)
 	rows, err := data.db.QueryContext(ctx, "SELECT `id`, `page_id`, `item_ids`, `catalog_name`, `cost_credits`, `cost_points`, `points_type`, `amount`, `limited_stack`, `limited_sells`, `extradata`, `club_only`, `have_offer`, `offer_id`, `order_number` FROM catalog_items")
@@ -248,6 +395,30 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 	}
 	log.Printf("LoadCatalogItemsFromDB(): Successfully loaded %d items from Database", count)
 	return items, nil
+}
+
+func (data *Database) GetCatalogItemsByPage(ctx context.Context, page_id int) ([]CatalogItem, error) {
+	item_ids, err := data.rdb.SMembers(ctx, fmt.Sprintf("catalog_items_by_page_id:%d", page_id)).Result()
+	if err != nil {
+		return nil, err
+	}
+	cmds := make([]*redis.MapStringStringCmd, len(item_ids))
+	pipe := data.rdb.Pipeline()
+	for i, item_id := range item_ids {
+		cmds[i] = pipe.HGetAll(ctx, fmt.Sprintf("catalog_items:%s", item_id))
+	}
+	result := make([]CatalogItem, 0, len(item_ids))
+	for _, c := range cmds {
+		var item CatalogItem
+		err := c.Scan(&item)
+		if err == nil {
+			result = append(result, item)
+		} else {
+			log.Printf("GetCatalogItemsByPage(): Got error while scanning item: %v", err)
+		}
+	}
+
+	return result, nil
 }
 
 type CatalogPage struct {

@@ -10,6 +10,7 @@ import (
 
 func RegisterLoginHandlers(e *EventListener) {
 	e.RegisterLoginHandler(sendLoginOK)
+	e.RegisterLoginHandler(loadHCData)
 	e.RegisterLoginHandler(setUserId)
 	e.RegisterLoginHandler(sendUserEffects)
 	e.RegisterLoginHandler(sendUserNoobStatus)
@@ -19,6 +20,12 @@ func RegisterLoginHandlers(e *EventListener) {
 	e.RegisterLoginHandler(sendMysteryBox)
 	e.RegisterLoginHandler(sendBuildersClubExpired)
 	e.RegisterLoginHandler(sendFavoriteRooms)
+}
+
+func loadHCData(ctx context.Context, event *LoginEvent) {
+	go func() {
+		Data.cacheUserHCData(ctx, event.UserData.AuthTicket)
+	}()
 }
 
 func setUserId(ctx context.Context, event *LoginEvent) {

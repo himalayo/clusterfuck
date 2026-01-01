@@ -7,6 +7,7 @@ option go_package = "github.com/himalayo/clusterfuck/player/proto";
 service Player {
 	rpc LoginPlayer (Ticket) returns (LoginStatus) {}
 	rpc GetUserData (Ticket) returns (UserData) {}
+	rpc GetUserHCData (Ticket) returns (UserHCData) {}
 }
 
 message Ticket {
@@ -25,6 +26,11 @@ message UserData {
 	string motto = 5;
 	int32 home_room = 6;
 	int32 rank = 7;
+}
+
+message UserHCData {
+	int32 last_hc_payday = 1;
+	int32 hc_gifts_claimed = 2;
 }
 
 message LoginEvent {

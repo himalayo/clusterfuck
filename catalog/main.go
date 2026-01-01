@@ -9,17 +9,27 @@ import (
 	configuration "github.com/himalayo/clusterfuck/api/configuration"
 	items "github.com/himalayo/clusterfuck/api/items"
 	networking "github.com/himalayo/clusterfuck/api/networking"
+	player "github.com/himalayo/clusterfuck/api/player"
+	subscription "github.com/himalayo/clusterfuck/api/subscription"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/redis/go-redis/v9"
 )
 
 var (
 	networkingAddr    = flag.String("net_addr", "localhost:50051", "networking gRPC API address")
+	subscriptionAddr  = flag.String("sub_addr", "localhost:50052", "subscription gRPC API address")
 	configurationAddr = flag.String("cfg_addr", "localhost:50057", "configuration gRPC API address")
 	itemsAddr         = flag.String("items_addr", "localhost:50062", "items gRPC API address")
+	playerAddr        = flag.String("player_addr", "localhost:50053", "player service address")
 	Net               = networking.NewClient()
 	Items             = items.NewClient()
-	events_cfg        = redis.Options{
+	Sub               = subscription.NewClient()
+	Player, _         = player.NewClient("catalog-service", &redis.Options{
+		Addr:     os.Getenv("PLAYER_EVENTS_REDIS_ADDR"),
+		Password: os.Getenv("PLAYER_EVENTS_REDIS_PASSWORD"),
+		DB:       0,
+	})
+	events_cfg = redis.Options{
 		Addr:     os.Getenv("CATALOG_EVENTS_REDIS_ADDR"),
 		Password: os.Getenv("CATALOG_EVENTS_REDIS_PASSWORD"),
 		DB:       0,
@@ -43,6 +53,16 @@ func main() {
 	if !present {
 		itemAddr = *itemsAddr
 	}
+	subAddr, present := os.LookupEnv("SUBSCRIPTION_HOST")
+	if !present {
+		subAddr = *subscriptionAddr
+	}
+	plAddr, present := os.LookupEnv("PLAYER_HOST")
+	if !present {
+		plAddr = *playerAddr
+	}
+	go Player.Listen(plAddr)
+	go Sub.Listen(subAddr)
 	go Items.Listen(itemAddr)
 	go func() {
 		Cfg.Listen(confAddr)
@@ -55,7 +75,7 @@ func main() {
 				Password: events_cfg.Password,
 				DB:       events_cfg.DB,
 			},
-		}, []int{}, NetPub.RedisConfig)
+		}, []int{487}, NetPub.RedisConfig)
 		if err != nil {
 			log.Printf("Got error while registering service: %v", err)
 		}

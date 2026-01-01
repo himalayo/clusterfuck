@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Player_LoginPlayer_FullMethodName = "/player.Player/LoginPlayer"
-	Player_GetUserData_FullMethodName = "/player.Player/GetUserData"
+	Player_LoginPlayer_FullMethodName   = "/player.Player/LoginPlayer"
+	Player_GetUserData_FullMethodName   = "/player.Player/GetUserData"
+	Player_GetUserHCData_FullMethodName = "/player.Player/GetUserHCData"
 )
 
 // PlayerClient is the client API for Player service.
@@ -29,6 +30,7 @@ const (
 type PlayerClient interface {
 	LoginPlayer(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*LoginStatus, error)
 	GetUserData(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*UserData, error)
+	GetUserHCData(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*UserHCData, error)
 }
 
 type playerClient struct {
@@ -59,12 +61,23 @@ func (c *playerClient) GetUserData(ctx context.Context, in *Ticket, opts ...grpc
 	return out, nil
 }
 
+func (c *playerClient) GetUserHCData(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*UserHCData, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserHCData)
+	err := c.cc.Invoke(ctx, Player_GetUserHCData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PlayerServer is the server API for Player service.
 // All implementations must embed UnimplementedPlayerServer
 // for forward compatibility.
 type PlayerServer interface {
 	LoginPlayer(context.Context, *Ticket) (*LoginStatus, error)
 	GetUserData(context.Context, *Ticket) (*UserData, error)
+	GetUserHCData(context.Context, *Ticket) (*UserHCData, error)
 	mustEmbedUnimplementedPlayerServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedPlayerServer) LoginPlayer(context.Context, *Ticket) (*LoginSt
 }
 func (UnimplementedPlayerServer) GetUserData(context.Context, *Ticket) (*UserData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserData not implemented")
+}
+func (UnimplementedPlayerServer) GetUserHCData(context.Context, *Ticket) (*UserHCData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserHCData not implemented")
 }
 func (UnimplementedPlayerServer) mustEmbedUnimplementedPlayerServer() {}
 func (UnimplementedPlayerServer) testEmbeddedByValue()                {}
@@ -138,6 +154,24 @@ func _Player_GetUserData_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Player_GetUserHCData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Ticket)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayerServer).GetUserHCData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Player_GetUserHCData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayerServer).GetUserHCData(ctx, req.(*Ticket))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Player_ServiceDesc is the grpc.ServiceDesc for Player service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var Player_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserData",
 			Handler:    _Player_GetUserData_Handler,
+		},
+		{
+			MethodName: "GetUserHCData",
+			Handler:    _Player_GetUserHCData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -37,6 +37,22 @@ func (s *server) GetSubscriptionsForUser(_ context.Context, user *pb.User) (*pb.
 	return toSubscriptions(result), nil
 }
 
+func (s *server) GetSessionSubscriptions(ctx context.Context, req *pb.SessionSubscriptionRequest) (*pb.Subscriptions, error) {
+	userIdStr, err := data.rdb.Get(ctx, fmt.Sprintf("user_id:%s", req.AuthTicket)).Result()
+	if err != nil {
+		return nil, err
+	}
+	user_id, err := strconv.ParseInt(userIdStr, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	subscriptions, err := data.GetUserSubscriptionsByType(ctx, int(user_id), req.SubscriptionType)
+	if err != nil {
+		return nil, err
+	}
+	return toSubscriptions(subscriptions), nil
+}
+
 func (s *server) UserHasSubscription(_ context.Context, req *pb.SubscriptionRequest) (*pb.HasSubscriptionResponse, error) {
 	s.data.hasClub(req)
 	return &pb.HasSubscriptionResponse{HasSubscription: <-s.data.HasSubscription}, nil

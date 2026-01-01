@@ -201,6 +201,58 @@ func (x *UserData) GetRank() int32 {
 	return 0
 }
 
+type UserHCData struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	LastHcPayday   int32                  `protobuf:"varint,1,opt,name=last_hc_payday,json=lastHcPayday,proto3" json:"last_hc_payday,omitempty"`
+	HcGiftsClaimed int32                  `protobuf:"varint,2,opt,name=hc_gifts_claimed,json=hcGiftsClaimed,proto3" json:"hc_gifts_claimed,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UserHCData) Reset() {
+	*x = UserHCData{}
+	mi := &file_player_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserHCData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserHCData) ProtoMessage() {}
+
+func (x *UserHCData) ProtoReflect() protoreflect.Message {
+	mi := &file_player_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserHCData.ProtoReflect.Descriptor instead.
+func (*UserHCData) Descriptor() ([]byte, []int) {
+	return file_player_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UserHCData) GetLastHcPayday() int32 {
+	if x != nil {
+		return x.LastHcPayday
+	}
+	return 0
+}
+
+func (x *UserHCData) GetHcGiftsClaimed() int32 {
+	if x != nil {
+		return x.HcGiftsClaimed
+	}
+	return 0
+}
+
 type LoginEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -212,7 +264,7 @@ type LoginEvent struct {
 
 func (x *LoginEvent) Reset() {
 	*x = LoginEvent{}
-	mi := &file_player_proto_msgTypes[3]
+	mi := &file_player_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -224,7 +276,7 @@ func (x *LoginEvent) String() string {
 func (*LoginEvent) ProtoMessage() {}
 
 func (x *LoginEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_player_proto_msgTypes[3]
+	mi := &file_player_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -237,7 +289,7 @@ func (x *LoginEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginEvent.ProtoReflect.Descriptor instead.
 func (*LoginEvent) Descriptor() ([]byte, []int) {
-	return file_player_proto_rawDescGZIP(), []int{3}
+	return file_player_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LoginEvent) GetId() string {
@@ -278,15 +330,20 @@ const file_player_proto_rawDesc = "" +
 	"authTicket\x12\x14\n" +
 	"\x05motto\x18\x05 \x01(\tR\x05motto\x12\x1b\n" +
 	"\thome_room\x18\x06 \x01(\x05R\bhomeRoom\x12\x12\n" +
-	"\x04rank\x18\a \x01(\x05R\x04rank\"_\n" +
+	"\x04rank\x18\a \x01(\x05R\x04rank\"\\\n" +
+	"\n" +
+	"UserHCData\x12$\n" +
+	"\x0elast_hc_payday\x18\x01 \x01(\x05R\flastHcPayday\x12(\n" +
+	"\x10hc_gifts_claimed\x18\x02 \x01(\x05R\x0ehcGiftsClaimed\"_\n" +
 	"\n" +
 	"LoginEvent\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12-\n" +
-	"\tuser_data\x18\x03 \x01(\v2\x10.player.UserDataR\buserData2q\n" +
+	"\tuser_data\x18\x03 \x01(\v2\x10.player.UserDataR\buserData2\xa8\x01\n" +
 	"\x06Player\x124\n" +
 	"\vLoginPlayer\x12\x0e.player.Ticket\x1a\x13.player.LoginStatus\"\x00\x121\n" +
-	"\vGetUserData\x12\x0e.player.Ticket\x1a\x10.player.UserData\"\x00B.Z,github.com/himalayo/clusterfuck/player/protob\x06proto3"
+	"\vGetUserData\x12\x0e.player.Ticket\x1a\x10.player.UserData\"\x00\x125\n" +
+	"\rGetUserHCData\x12\x0e.player.Ticket\x1a\x12.player.UserHCData\"\x00B.Z,github.com/himalayo/clusterfuck/player/protob\x06proto3"
 
 var (
 	file_player_proto_rawDescOnce sync.Once
@@ -300,21 +357,24 @@ func file_player_proto_rawDescGZIP() []byte {
 	return file_player_proto_rawDescData
 }
 
-var file_player_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_player_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_player_proto_goTypes = []any{
 	(*Ticket)(nil),      // 0: player.Ticket
 	(*LoginStatus)(nil), // 1: player.LoginStatus
 	(*UserData)(nil),    // 2: player.UserData
-	(*LoginEvent)(nil),  // 3: player.LoginEvent
+	(*UserHCData)(nil),  // 3: player.UserHCData
+	(*LoginEvent)(nil),  // 4: player.LoginEvent
 }
 var file_player_proto_depIdxs = []int32{
 	2, // 0: player.LoginEvent.user_data:type_name -> player.UserData
 	0, // 1: player.Player.LoginPlayer:input_type -> player.Ticket
 	0, // 2: player.Player.GetUserData:input_type -> player.Ticket
-	1, // 3: player.Player.LoginPlayer:output_type -> player.LoginStatus
-	2, // 4: player.Player.GetUserData:output_type -> player.UserData
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
+	0, // 3: player.Player.GetUserHCData:input_type -> player.Ticket
+	1, // 4: player.Player.LoginPlayer:output_type -> player.LoginStatus
+	2, // 5: player.Player.GetUserData:output_type -> player.UserData
+	3, // 6: player.Player.GetUserHCData:output_type -> player.UserHCData
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -331,7 +391,7 @@ func file_player_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_player_proto_rawDesc), len(file_player_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -43,6 +43,17 @@ func (s *server) GetUserData(_ context.Context, sso *pb.Ticket) (*pb.UserData, e
 	return Data.loadUserData(sso.GetSso()).toProto(), nil
 }
 
+func (s *server) GetUserHCData(ctx context.Context, ticket *pb.Ticket) (*pb.UserHCData, error) {
+	u, err := Data.GetUserHCData(ctx, ticket.Sso)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UserHCData{
+		LastHcPayday:   int32(u.LastHCPayday),
+		HcGiftsClaimed: int32(u.HCGiftsClaimed),
+	}, nil
+}
+
 func StartIncoming(addr string) {
 	hostname, portString, _ := strings.Cut(addr, ":")
 	port, err := strconv.Atoi(portString)
