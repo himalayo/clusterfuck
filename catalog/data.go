@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
@@ -80,6 +81,136 @@ type CatalogItem struct {
 	HaveOffer    bool   `redis:"have_offer"`
 	OfferId      int    `redis:"offer_id"`
 	OrderNumber  int    `redis:"order_number"`
+	Serialized   string `redis:"serialized"`
+}
+
+func (catalogItem *CatalogItem) toBytes() []byte {
+	xs := integerToBytes(catalogItem.Id)
+	xs = appendString(xs, catalogItem.Name)
+	xs = appendBool(xs, false)
+	xs = appendInt(xs, catalogItem.Credits)
+	xs = appendInt(xs, catalogItem.Points)
+	xs = appendInt(xs, catalogItem.PointsType)
+
+	item_ids_string := strings.Split(catalogItem.ItemIds, ";")
+	item_ids := make([]int, 0, len(item_ids_string))
+	for _, id_string := range item_ids_string {
+		if strings.Contains(id_string, ":") {
+			id_string = strings.Split(id_string, ":")[0]
+		}
+
+		if id_string == "" {
+			continue
+		}
+
+		item_id, err := strconv.ParseInt(id_string, 10, 32)
+		if err == nil && item_id > 0 {
+			item_ids = append(item_ids, int(item_id))
+		}
+	}
+	itemsList, err := Items.GetItemByIds(item_ids)
+	if err != nil {
+		log.Printf("CatalogItem.toBytes(): Got error while requesting items: %v", err)
+		return nil
+	}
+	items := itemsList.Items
+	bundle := make(map[int]int)
+	allowGift := false
+	if strings.Contains(catalogItem.ItemIds, ";") {
+		for _, id_string := range item_ids_string {
+			if strings.Contains(id_string, ":") {
+				item_id1, err := strconv.ParseInt(strings.Split(id_string, ":")[0], 10, 32)
+				if err == nil && item_id1 > 0 {
+					item_id2, err := strconv.ParseInt(strings.Split(id_string, ":")[0], 10, 32)
+					if err == nil && item_id2 > 0 {
+						bundle[int(item_id1)] = int(item_id2)
+					}
+				}
+			} else {
+				if id_string != "" {
+					item_id, err := strconv.ParseInt(id_string, 10, 32)
+					if err == nil {
+						bundle[int(item_id)] = 1
+					}
+				}
+			}
+		}
+	} else {
+		if len(items) > 0 {
+			allowGift = items[0].AllowGift
+		}
+	}
+	xs = appendBool(xs, allowGift)
+	xs = appendInt(xs, len(items))
+
+	haveOffer := true
+	lower_name := strings.ToLower(catalogItem.Name)
+
+	if !catalogItem.HaveOffer || strings.HasSuffix(lower_name, "cf_") || strings.HasSuffix(lower_name, "cfc_") || strings.HasSuffix(lower_name, "rentable_bot") || len(bundle) > 1 || catalogItem.LimitedStack > 0 || catalogItem.Amount != 1 {
+		haveOffer = false
+	}
+
+	for _, item := range items {
+		lower_item_name := strings.ToLower(item.Name)
+		if strings.HasSuffix(lower_item_name, "cf_") || strings.HasSuffix(lower_item_name, "cfc_") || strings.HasSuffix(lower_item_name, "rentable_bot") {
+			haveOffer = false
+		}
+
+		xs = appendString(xs, strings.ToLower(item.FurnitureType))
+		if item.FurnitureType == "B" {
+			xs = appendString(xs, item.Name)
+		} else {
+			xs = appendInt(xs, int(item.SpriteId))
+
+			if strings.Contains(catalogItem.Name, "wallpaper_single") || strings.Contains(catalogItem.Name, "floor_single") || strings.Contains(catalogItem.Name, "landscape_single") {
+				xs = appendString(xs, strings.Split(catalogItem.Name, "_")[2])
+			} else if strings.Contains(item.Name, "bot") && item.FurnitureType == "R" {
+				lookFound := false
+				extradatas := strings.Split(catalogItem.Extradata, ";")
+				for _, s := range extradatas {
+					if strings.HasSuffix(s, "figure:") {
+						lookFound = true
+						xs = appendString(xs, strings.ReplaceAll(s, "figure:", ""))
+						break
+					}
+				}
+
+				if !lookFound {
+					xs = appendString(xs, catalogItem.Extradata)
+				}
+			} else if item.FurnitureType == "R" {
+				xs = appendString(xs, catalogItem.Extradata)
+			} else if strings.HasSuffix(catalogItem.Name, "SONG ") {
+				xs = appendString(xs, catalogItem.Extradata)
+			} else {
+				xs = appendString(xs, "")
+			}
+
+			amount, ok := bundle[int(item.Id)]
+			if !ok {
+				amount = catalogItem.Amount
+			}
+			xs = appendInt(xs, amount)
+			isLimited := false
+			if catalogItem.LimitedStack > 0 {
+				isLimited = true
+			}
+			xs = appendBool(xs, isLimited)
+			if isLimited {
+				xs = appendInt(xs, catalogItem.LimitedStack)
+				xs = appendInt(xs, catalogItem.LimitedStack-catalogItem.LimitedSells)
+			}
+		}
+	}
+	if catalogItem.ClubOnly {
+		xs = appendInt(xs, 1)
+	} else {
+		xs = appendInt(xs, 0)
+	}
+	xs = appendBool(xs, haveOffer)
+	xs = appendBool(xs, false)
+	xs = appendString(xs, catalogItem.Name+".png")
+	return xs
 }
 
 func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem, error) {
@@ -89,7 +220,6 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 		return nil, err
 	}
 	count := 0
-	pipe := data.rdb.Pipeline()
 	for rows.Next() {
 		var item CatalogItem
 		if err := rows.Scan(&item.Id, &item.PageId, &item.ItemIds, &item.Name, &item.Credits, &item.Points, &item.PointsType, &item.Amount, &item.LimitedStack, &item.LimitedSells, &item.Extradata, &item.ClubOnly, &item.HaveOffer, &item.OfferId, &item.OrderNumber); err != nil {
@@ -98,29 +228,24 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 		}
 		items = append(items, item)
 		count++
-		pipe.HSet(ctx, fmt.Sprintf("catalog_items:%d", item.Id), item)
-		if strings.Contains(item.Name, "HABBO_CLUB_") {
-			pipe.SAdd(ctx, "club_items", item.Id)
-			continue
-		}
-
-		pipe.SAdd(ctx, fmt.Sprintf("catalog_items_by_page_id:%d", item.PageId), item.Id)
-		if item.OfferId != -1 {
-			pipe.SAdd(ctx, fmt.Sprintf("catalog_offers_by_page_id:%d", item.PageId), item.OfferId)
-			pipe.SAdd(ctx, fmt.Sprintf("catalog_offers_id_to_item_id:%d", item.OfferId), item.Id)
-		}
-	}
-	cmds, err := pipe.Exec(ctx)
-	if err != nil {
-		log.Printf("loadCatalogItemsFromDB(): Got error while executing pipeline: %v", err)
-	} else {
-		for _, c := range cmds {
-			if err := c.Err(); err != nil {
+		go func() {
+			item.Serialized = string(item.toBytes())
+			err := data.rdb.HSet(ctx, fmt.Sprintf("catalog_items:%d", item.Id), item).Err()
+			if err != nil {
 				log.Printf("loadCatalogItemsFromDB(): Got error while caching: %v", err)
 			}
-		}
-	}
+			if strings.Contains(item.Name, "HABBO_CLUB_") {
+				data.rdb.SAdd(ctx, "club_items", item.Id)
+				return
+			}
 
+			data.rdb.SAdd(ctx, fmt.Sprintf("catalog_items_by_page_id:%d", item.PageId), item.Id)
+			if item.OfferId != -1 {
+				data.rdb.SAdd(ctx, fmt.Sprintf("catalog_offers_by_page_id:%d", item.PageId), item.OfferId)
+				data.rdb.SAdd(ctx, fmt.Sprintf("catalog_offers_id_to_item_id:%d", item.OfferId), item.Id)
+			}
+		}()
+	}
 	log.Printf("LoadCatalogItemsFromDB(): Successfully loaded %d items from Database", count)
 	return items, nil
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	configuration "github.com/himalayo/clusterfuck/api/configuration"
+	items "github.com/himalayo/clusterfuck/api/items"
 	networking "github.com/himalayo/clusterfuck/api/networking"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/redis/go-redis/v9"
@@ -15,7 +16,9 @@ import (
 var (
 	networkingAddr    = flag.String("net_addr", "localhost:50051", "networking gRPC API address")
 	configurationAddr = flag.String("cfg_addr", "localhost:50057", "configuration gRPC API address")
+	itemsAddr         = flag.String("items_addr", "localhost:50062", "items gRPC API address")
 	Net               = networking.NewClient()
+	Items             = items.NewClient()
 	events_cfg        = redis.Options{
 		Addr:     os.Getenv("CATALOG_EVENTS_REDIS_ADDR"),
 		Password: os.Getenv("CATALOG_EVENTS_REDIS_PASSWORD"),
@@ -28,8 +31,6 @@ var (
 var NetPub *networking.NetworkingPublisher
 
 func main() {
-	go data.LoadCatalogPagesFromDB(context.Background())
-	go data.loadCatalogItemsFromDB(context.Background())
 	netAddr, present := os.LookupEnv("NETWORKING_HOST")
 	if !present {
 		netAddr = *networkingAddr
@@ -38,6 +39,11 @@ func main() {
 	if !present {
 		confAddr = *configurationAddr
 	}
+	itemAddr, present := os.LookupEnv("ITEMS_HOST")
+	if !present {
+		itemAddr = *itemsAddr
+	}
+	go Items.Listen(itemAddr)
 	go func() {
 		Cfg.Listen(confAddr)
 
@@ -61,7 +67,8 @@ func main() {
 		DB:       0,
 	})
 	go Net.Listen(netAddr)
-
+	go data.LoadCatalogPagesFromDB(context.Background())
+	go data.loadCatalogItemsFromDB(context.Background())
 	Net.SetRedisSubscriber(&redis.Options{
 		Addr:     events_cfg.Addr,
 		Password: events_cfg.Password,

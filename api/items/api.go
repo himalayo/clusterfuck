@@ -13,6 +13,10 @@ type ItemsClient struct {
 	client pb.ItemsClient
 }
 
+func NewClient() *ItemsClient {
+	return &ItemsClient{}
+}
+
 func (n *ItemsClient) GetItemById(id int) (*pb.Item, error) {
 	return n.client.GetItem(context.Background(), &pb.ItemRequest{
 		Request: &pb.ItemRequest_ItemId{

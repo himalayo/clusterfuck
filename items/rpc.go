@@ -111,7 +111,7 @@ func (s *server) GetItems(ctx context.Context, _ *pb.Empty) (*pb.ItemList, error
 	return ItemsResultToProto(s.data.GetItems(ctx))
 }
 
-func (s *server) GetItemsList(ctx context.Context, in *pb.ItemListRequest) (*pb.ItemList, error) {
+func (s *server) GetItemList(ctx context.Context, in *pb.ItemListRequest) (*pb.ItemList, error) {
 	return ItemsResultToProto(s.data.GetItemByIds(ctx, in.ItemIds))
 }
 

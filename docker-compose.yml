@@ -109,6 +109,8 @@ services:
     depends_on:
       networking:
         condition: service_started
+      items:
+        condition: service_started
       mariadb:
         condition: service_healthy
 
