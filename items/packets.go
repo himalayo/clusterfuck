@@ -43,24 +43,3 @@ func appendString(packet []byte, str string) []byte {
 func appendBool(packet []byte, b bool) []byte {
 	return append(packet, boolToByte(b))
 }
-
-func appendValue(packet []byte, value any) []byte {
-	switch value := value.(type) {
-	case int16:
-		return appendShort(packet, int(value))
-	case int:
-		return appendInt(packet, value)
-	case string:
-		return appendString(packet, value)
-	case bool:
-		return appendBool(packet, value)
-	case []byte:
-		return append(packet, value...)
-	case byte:
-		return append(packet, value)
-	case Serializeable:
-		return append(packet, value.Serialize()...)
-	default:
-		return packet
-	}
-}
