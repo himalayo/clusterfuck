@@ -57,6 +57,50 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_items_proto_rawDescGZIP(), []int{0}
 }
 
+type ItemListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ItemIds       []int32                `protobuf:"varint,1,rep,packed,name=item_ids,json=itemIds,proto3" json:"item_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ItemListRequest) Reset() {
+	*x = ItemListRequest{}
+	mi := &file_items_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ItemListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ItemListRequest) ProtoMessage() {}
+
+func (x *ItemListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_items_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ItemListRequest.ProtoReflect.Descriptor instead.
+func (*ItemListRequest) Descriptor() ([]byte, []int) {
+	return file_items_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ItemListRequest) GetItemIds() []int32 {
+	if x != nil {
+		return x.ItemIds
+	}
+	return nil
+}
+
 type ItemList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []*Item                `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -66,7 +110,7 @@ type ItemList struct {
 
 func (x *ItemList) Reset() {
 	*x = ItemList{}
-	mi := &file_items_proto_msgTypes[1]
+	mi := &file_items_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -78,7 +122,7 @@ func (x *ItemList) String() string {
 func (*ItemList) ProtoMessage() {}
 
 func (x *ItemList) ProtoReflect() protoreflect.Message {
-	mi := &file_items_proto_msgTypes[1]
+	mi := &file_items_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -91,7 +135,7 @@ func (x *ItemList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemList.ProtoReflect.Descriptor instead.
 func (*ItemList) Descriptor() ([]byte, []int) {
-	return file_items_proto_rawDescGZIP(), []int{1}
+	return file_items_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ItemList) GetItems() []*Item {
@@ -114,7 +158,7 @@ type ItemRequest struct {
 
 func (x *ItemRequest) Reset() {
 	*x = ItemRequest{}
-	mi := &file_items_proto_msgTypes[2]
+	mi := &file_items_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -126,7 +170,7 @@ func (x *ItemRequest) String() string {
 func (*ItemRequest) ProtoMessage() {}
 
 func (x *ItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_items_proto_msgTypes[2]
+	mi := &file_items_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -139,7 +183,7 @@ func (x *ItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemRequest.ProtoReflect.Descriptor instead.
 func (*ItemRequest) Descriptor() ([]byte, []int) {
-	return file_items_proto_rawDescGZIP(), []int{2}
+	return file_items_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ItemRequest) GetRequest() isItemRequest_Request {
@@ -194,9 +238,9 @@ type Item struct {
 	Length              int32                  `protobuf:"varint,7,opt,name=length,proto3" json:"length,omitempty"`
 	Height              float64                `protobuf:"fixed64,8,opt,name=height,proto3" json:"height,omitempty"`
 	AllowStack          bool                   `protobuf:"varint,9,opt,name=allow_stack,json=allowStack,proto3" json:"allow_stack,omitempty"`
-	AllowWalk           int32                  `protobuf:"varint,10,opt,name=allow_walk,json=allowWalk,proto3" json:"allow_walk,omitempty"`
-	AllowSit            int32                  `protobuf:"varint,11,opt,name=allow_sit,json=allowSit,proto3" json:"allow_sit,omitempty"`
-	AllowLay            int32                  `protobuf:"varint,12,opt,name=allow_lay,json=allowLay,proto3" json:"allow_lay,omitempty"`
+	AllowWalk           bool                   `protobuf:"varint,10,opt,name=allow_walk,json=allowWalk,proto3" json:"allow_walk,omitempty"`
+	AllowSit            bool                   `protobuf:"varint,11,opt,name=allow_sit,json=allowSit,proto3" json:"allow_sit,omitempty"`
+	AllowLay            bool                   `protobuf:"varint,12,opt,name=allow_lay,json=allowLay,proto3" json:"allow_lay,omitempty"`
 	AllowRecycle        bool                   `protobuf:"varint,13,opt,name=allow_recycle,json=allowRecycle,proto3" json:"allow_recycle,omitempty"`
 	AllowTrade          bool                   `protobuf:"varint,14,opt,name=allow_trade,json=allowTrade,proto3" json:"allow_trade,omitempty"`
 	AllowMarketplace    bool                   `protobuf:"varint,15,opt,name=allow_marketplace,json=allowMarketplace,proto3" json:"allow_marketplace,omitempty"`
@@ -211,13 +255,14 @@ type Item struct {
 	ClothingOnWalk      string                 `protobuf:"bytes,24,opt,name=clothing_on_walk,json=clothingOnWalk,proto3" json:"clothing_on_walk,omitempty"`
 	InteractionType     string                 `protobuf:"bytes,25,opt,name=interaction_type,json=interactionType,proto3" json:"interaction_type,omitempty"`
 	Rotations           int32                  `protobuf:"varint,26,opt,name=rotations,proto3" json:"rotations,omitempty"`
+	Serialized          []byte                 `protobuf:"bytes,27,opt,name=serialized,proto3" json:"serialized,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Item) Reset() {
 	*x = Item{}
-	mi := &file_items_proto_msgTypes[3]
+	mi := &file_items_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +274,7 @@ func (x *Item) String() string {
 func (*Item) ProtoMessage() {}
 
 func (x *Item) ProtoReflect() protoreflect.Message {
-	mi := &file_items_proto_msgTypes[3]
+	mi := &file_items_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +287,7 @@ func (x *Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Item.ProtoReflect.Descriptor instead.
 func (*Item) Descriptor() ([]byte, []int) {
-	return file_items_proto_rawDescGZIP(), []int{3}
+	return file_items_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Item) GetId() int32 {
@@ -308,25 +353,25 @@ func (x *Item) GetAllowStack() bool {
 	return false
 }
 
-func (x *Item) GetAllowWalk() int32 {
+func (x *Item) GetAllowWalk() bool {
 	if x != nil {
 		return x.AllowWalk
 	}
-	return 0
+	return false
 }
 
-func (x *Item) GetAllowSit() int32 {
+func (x *Item) GetAllowSit() bool {
 	if x != nil {
 		return x.AllowSit
 	}
-	return 0
+	return false
 }
 
-func (x *Item) GetAllowLay() int32 {
+func (x *Item) GetAllowLay() bool {
 	if x != nil {
 		return x.AllowLay
 	}
-	return 0
+	return false
 }
 
 func (x *Item) GetAllowRecycle() bool {
@@ -427,18 +472,27 @@ func (x *Item) GetRotations() int32 {
 	return 0
 }
 
+func (x *Item) GetSerialized() []byte {
+	if x != nil {
+		return x.Serialized
+	}
+	return nil
+}
+
 var File_items_proto protoreflect.FileDescriptor
 
 const file_items_proto_rawDesc = "" +
 	"\n" +
 	"\vitems.proto\x12\x05items\"\a\n" +
-	"\x05Empty\"-\n" +
+	"\x05Empty\",\n" +
+	"\x0fItemListRequest\x12\x19\n" +
+	"\bitem_ids\x18\x01 \x03(\x05R\aitemIds\"-\n" +
 	"\bItemList\x12!\n" +
 	"\x05items\x18\x01 \x03(\v2\v.items.ItemR\x05items\"R\n" +
 	"\vItemRequest\x12\x19\n" +
 	"\aitem_id\x18\x01 \x01(\x05H\x00R\x06itemId\x12\x1d\n" +
 	"\titem_name\x18\x02 \x01(\tH\x00R\bitemNameB\t\n" +
-	"\arequest\"\xca\x06\n" +
+	"\arequest\"\xea\x06\n" +
 	"\x04Item\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1b\n" +
 	"\tsprite_id\x18\x02 \x01(\x05R\bspriteId\x12\x12\n" +
@@ -452,9 +506,9 @@ const file_items_proto_rawDesc = "" +
 	"allowStack\x12\x1d\n" +
 	"\n" +
 	"allow_walk\x18\n" +
-	" \x01(\x05R\tallowWalk\x12\x1b\n" +
-	"\tallow_sit\x18\v \x01(\x05R\ballowSit\x12\x1b\n" +
-	"\tallow_lay\x18\f \x01(\x05R\ballowLay\x12#\n" +
+	" \x01(\bR\tallowWalk\x12\x1b\n" +
+	"\tallow_sit\x18\v \x01(\bR\ballowSit\x12\x1b\n" +
+	"\tallow_lay\x18\f \x01(\bR\ballowLay\x12#\n" +
 	"\rallow_recycle\x18\r \x01(\bR\fallowRecycle\x12\x1f\n" +
 	"\vallow_trade\x18\x0e \x01(\bR\n" +
 	"allowTrade\x12+\n" +
@@ -471,10 +525,14 @@ const file_items_proto_rawDesc = "" +
 	"\rcustom_params\x18\x17 \x01(\tR\fcustomParams\x12(\n" +
 	"\x10clothing_on_walk\x18\x18 \x01(\tR\x0eclothingOnWalk\x12)\n" +
 	"\x10interaction_type\x18\x19 \x01(\tR\x0finteractionType\x12\x1c\n" +
-	"\trotations\x18\x1a \x01(\x05R\trotations2b\n" +
+	"\trotations\x18\x1a \x01(\x05R\trotations\x12\x1e\n" +
+	"\n" +
+	"serialized\x18\x1b \x01(\fR\n" +
+	"serialized2\x9c\x01\n" +
 	"\x05Items\x12,\n" +
 	"\aGetItem\x12\x12.items.ItemRequest\x1a\v.items.Item\"\x00\x12+\n" +
-	"\bGetItems\x12\f.items.Empty\x1a\x0f.items.ItemList\"\x00B1Z/github.com/himalayo/clusterfuck/api/items/protob\x06proto3"
+	"\bGetItems\x12\f.items.Empty\x1a\x0f.items.ItemList\"\x00\x128\n" +
+	"\vGetItemList\x12\x16.items.ItemListRequest\x1a\x0f.items.ItemList\"\x00B1Z/github.com/himalayo/clusterfuck/api/items/protob\x06proto3"
 
 var (
 	file_items_proto_rawDescOnce sync.Once
@@ -488,21 +546,24 @@ func file_items_proto_rawDescGZIP() []byte {
 	return file_items_proto_rawDescData
 }
 
-var file_items_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_items_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_items_proto_goTypes = []any{
-	(*Empty)(nil),       // 0: items.Empty
-	(*ItemList)(nil),    // 1: items.ItemList
-	(*ItemRequest)(nil), // 2: items.ItemRequest
-	(*Item)(nil),        // 3: items.Item
+	(*Empty)(nil),           // 0: items.Empty
+	(*ItemListRequest)(nil), // 1: items.ItemListRequest
+	(*ItemList)(nil),        // 2: items.ItemList
+	(*ItemRequest)(nil),     // 3: items.ItemRequest
+	(*Item)(nil),            // 4: items.Item
 }
 var file_items_proto_depIdxs = []int32{
-	3, // 0: items.ItemList.items:type_name -> items.Item
-	2, // 1: items.Items.GetItem:input_type -> items.ItemRequest
+	4, // 0: items.ItemList.items:type_name -> items.Item
+	3, // 1: items.Items.GetItem:input_type -> items.ItemRequest
 	0, // 2: items.Items.GetItems:input_type -> items.Empty
-	3, // 3: items.Items.GetItem:output_type -> items.Item
-	1, // 4: items.Items.GetItems:output_type -> items.ItemList
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
+	1, // 3: items.Items.GetItemList:input_type -> items.ItemListRequest
+	4, // 4: items.Items.GetItem:output_type -> items.Item
+	2, // 5: items.Items.GetItems:output_type -> items.ItemList
+	2, // 6: items.Items.GetItemList:output_type -> items.ItemList
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -513,7 +574,7 @@ func file_items_proto_init() {
 	if File_items_proto != nil {
 		return
 	}
-	file_items_proto_msgTypes[2].OneofWrappers = []any{
+	file_items_proto_msgTypes[3].OneofWrappers = []any{
 		(*ItemRequest_ItemId)(nil),
 		(*ItemRequest_ItemName)(nil),
 	}
@@ -523,7 +584,7 @@ func file_items_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_items_proto_rawDesc), len(file_items_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

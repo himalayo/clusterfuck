@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/go-sql-driver/mysql"
@@ -90,7 +91,41 @@ type Item struct {
 	ClothingOnWalk      string  `redis:"clothing_on_walk"`
 	VendingIds          string  `redis:"vending_ids"`
 	MultiHeight         string  `redis:"multiheight"`
-	Rotations           int     `reids:"rotations"`
+	Rotations           int     `redis:"rotations"`
+	Serialized          string  `redis:"serialized"`
+}
+
+func (item *Item) toBytes() []byte {
+	if item == nil {
+		return []byte{}
+	}
+
+	data := appendString(nil, strings.ToLower(item.Type))
+	if item.Type == "B" {
+		data = appendString(data, item.CustomParams)
+	} else {
+		data = appendInt(data, item.SpriteId)
+
+		if strings.Contains(item.ItemName, "wallpaper_single") || strings.Contains(item.ItemName, "floor_single") || strings.Contains(item.ItemName, "landscape_single") {
+			data = appendString(data, strings.Split(item.ItemName, "_")[2])
+		} else if item.Type == "R" {
+			data = appendString(data, item.CustomParams)
+		} else if strings.ToLower(item.ItemName) == "poster" {
+			data = appendString(data, item.CustomParams)
+		} else if strings.HasSuffix(item.ItemName, "SONG ") {
+			data = appendString(data, item.CustomParams)
+		} else {
+			data = appendString(data, "")
+		}
+
+		data = appendInt(data, 1)
+		data = appendBool(data, false)
+	}
+	return data
+}
+
+func (item *Item) Serialize() []byte {
+	return []byte(item.Serialized)
 }
 
 func (data *Database) loadBaseItemsFromDB(ctx context.Context) ([]Item, error) {
@@ -109,6 +144,7 @@ func (data *Database) loadBaseItemsFromDB(ctx context.Context) ([]Item, error) {
 			continue
 		}
 		item.Rotations = 4
+		item.Serialized = string(item.toBytes())
 		items = append(items, item)
 		pipe.HSet(ctx, fmt.Sprintf("items_base:%d", item.Id), item)
 		pipe.Set(ctx, fmt.Sprintf("items_base_id_by_name:%s", item.ItemName), item.Id, 0)
@@ -187,6 +223,30 @@ func (data *Database) GetItemByName(ctx context.Context, name string) (*Item, er
 		return data.loadItemByNameFromRedis(ctx, name)
 	}
 	return data.loadItemByNameFromDB(ctx, name)
+}
+
+func (data *Database) GetItemByIds(ctx context.Context, ids []int32) ([]Item, error) {
+	cmds := make([]*redis.MapStringStringCmd, len(ids))
+	pipe := data.rdb.Pipeline()
+	for i, id := range ids {
+		cmds[i] = pipe.HGetAll(ctx, fmt.Sprintf("items_base:%d", id))
+	}
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Printf("GetItemByIds(): Got error executing pipeline: %v", err)
+		return nil, err
+	}
+	res := make([]Item, 0, len(ids))
+	for _, c := range cmds {
+		var item Item
+		err := c.Scan(&item)
+		if err == nil {
+			res = append(res, item)
+		} else {
+			log.Printf("GetItemByIds(): Got error loading from cache: %v", err)
+		}
+	}
+	return res, nil
 }
 
 func (data *Database) loadItemsFromRedis(ctx context.Context) ([]Item, error) {

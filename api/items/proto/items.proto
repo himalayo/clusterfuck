@@ -7,10 +7,15 @@ option go_package = "github.com/himalayo/clusterfuck/api/items/proto";
 service Items {
     rpc GetItem (ItemRequest) returns (Item) {}
     rpc GetItems (Empty) returns (ItemList) {}
+    rpc GetItemList (ItemListRequest) returns (ItemList) {}
 }
 
 message Empty {
 
+}
+
+message ItemListRequest {
+    repeated int32 item_ids = 1;
 }
 
 message ItemList {
@@ -34,9 +39,9 @@ message Item {
     int32 length = 7;
     double height = 8;
     bool allow_stack = 9;
-    int32 allow_walk = 10;
-    int32 allow_sit = 11;
-    int32 allow_lay = 12;
+    bool allow_walk = 10;
+    bool allow_sit = 11;
+    bool allow_lay = 12;
     bool allow_recycle = 13;
     bool allow_trade = 14;
     bool allow_marketplace = 15;
@@ -51,4 +56,5 @@ message Item {
     string clothing_on_walk = 24;
     string interaction_type = 25;
     int32 rotations = 26;
+    bytes serialized = 27;
 }

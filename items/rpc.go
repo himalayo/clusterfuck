@@ -54,9 +54,9 @@ func (item Item) ToProto() *pb.Item {
 		Length:              int32(item.Length),
 		Height:              item.Height,
 		AllowStack:          item.AllowStack,
-		AllowWalk:           int32(item.AllowWalk),
-		AllowSit:            int32(item.AllowSit),
-		AllowLay:            int32(item.AllowLay),
+		AllowWalk:           item.AllowWalk == 1,
+		AllowSit:            item.AllowSit == 1,
+		AllowLay:            item.AllowLay == 1,
 		AllowRecycle:        item.AllowRecycle,
 		AllowTrade:          item.AllowTrade,
 		AllowMarketplace:    item.AllowMarketplace,
@@ -70,6 +70,7 @@ func (item Item) ToProto() *pb.Item {
 		CustomParams:        item.CustomParams,
 		ClothingOnWalk:      item.ClothingOnWalk,
 		InteractionType:     item.InteractionType,
+		Serialized:          item.Serialize(),
 	}
 }
 
@@ -108,6 +109,10 @@ func (s *server) GetItem(ctx context.Context, in *pb.ItemRequest) (*pb.Item, err
 
 func (s *server) GetItems(ctx context.Context, _ *pb.Empty) (*pb.ItemList, error) {
 	return ItemsResultToProto(s.data.GetItems(ctx))
+}
+
+func (s *server) GetItemsList(ctx context.Context, in *pb.ItemListRequest) (*pb.ItemList, error) {
+	return ItemsResultToProto(s.data.GetItemByIds(ctx, in.ItemIds))
 }
 
 func StartServer(data *Database) {

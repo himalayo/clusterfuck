@@ -33,6 +33,17 @@ func (n *ItemsClient) GetItems() (*pb.ItemList, error) {
 	return n.client.GetItems(context.Background(), &pb.Empty{})
 }
 
+func (n *ItemsClient) GetItemByIds(ids []int) (*pb.ItemList, error) {
+	ids_i32 := make([]int32, len(ids))
+	for i, id := range ids {
+		ids_i32[i] = int32(id)
+	}
+
+	return n.client.GetItemList(context.Background(), &pb.ItemListRequest{
+		ItemIds: ids_i32,
+	})
+}
+
 func (n *ItemsClient) Listen(addr string) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
