@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package items;
+
+option go_package = "github.com/himalayo/clusterfuck/api/items/proto";
+
+service Items {
+    rpc GetItem (ItemRequest) returns (Item) {}
+    rpc GetItems (Empty) returns (ItemList) {}
+}
+
+message Empty {
+
+}
+
+message ItemList {
+    repeated Item items = 1;
+}
+
+message ItemRequest {
+    oneof request {
+        int32 item_id = 1;
+        string item_name = 2;
+    }
+}
+
+message Item {
+    int32 id = 1;
+    int32 sprite_id = 2;
+    string name = 3;
+    string full_name = 4;
+    string furniture_type = 5;
+    int32 width = 6;
+    int32 length = 7;
+    double height = 8;
+    bool allow_stack = 9;
+    int32 allow_walk = 10;
+    int32 allow_sit = 11;
+    int32 allow_lay = 12;
+    bool allow_recycle = 13;
+    bool allow_trade = 14;
+    bool allow_marketplace = 15;
+    bool allow_gift = 16;
+    bool allow_inventory_stack = 17;
+    int32 state_count = 18;
+    int32 effect_m = 19;
+    int32 effect_f = 20;
+    repeated int32 vending_items = 21;
+    repeated double multi_heights = 22;
+    string custom_params = 23;
+    string clothing_on_walk = 24;
+    string interaction_type = 25;
+    int32 rotations = 26;
+}

@@ -128,6 +128,20 @@ services:
       mariadb:
         condition: service_healthy
 
+  items:
+    env_file: docker.env
+    container_name: items
+    hostname: items
+    build:
+      context: ./
+      dockerfile: ./items/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
   modtool:
     env_file: docker.env
     container_name: modtool
@@ -212,6 +226,22 @@ services:
     container_name: guilds-event-redis
     volumes:
         - 'guilds_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  items-redis:
+    image: 'redis:alpine'
+    hostname: items-redis
+    container_name: items-redis
+    volumes:
+        - 'items_redis:/data'
     networks:
         - clusterfuck_network
     healthcheck:
@@ -523,6 +553,8 @@ volumes:
   guilds_outgoing_redis:
     driver: local
   guilds_event_redis:
+    driver: local
+  items_redis:
     driver: local
   permission_redis:
     driver: local

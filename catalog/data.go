@@ -88,6 +88,7 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 	if err != nil {
 		return nil, err
 	}
+	count := 0
 	pipe := data.rdb.Pipeline()
 	for rows.Next() {
 		var item CatalogItem
@@ -96,6 +97,7 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 			continue
 		}
 		items = append(items, item)
+		count++
 		pipe.HSet(ctx, fmt.Sprintf("catalog_items:%d", item.Id), item)
 		if strings.Contains(item.Name, "HABBO_CLUB_") {
 			pipe.SAdd(ctx, "club_items", item.Id)
@@ -119,6 +121,7 @@ func (data *Database) loadCatalogItemsFromDB(ctx context.Context) ([]CatalogItem
 		}
 	}
 
+	log.Printf("LoadCatalogItemsFromDB(): Successfully loaded %d items from Database", count)
 	return items, nil
 }
 
@@ -160,6 +163,7 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 		log.Printf("LoadCatalogPagesFromDB(): Got error: %v", err)
 		return pages, err
 	}
+	count := 0
 	pipe := data.rdb.Pipeline()
 
 	for rows.Next() {
@@ -189,8 +193,6 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 			page.SpecialImage = SpecialImage.String
 		}
 
-		log.Printf("Loaded: ID: %d, Name: %s, Caption: %s", page.Id, page.PageName, page.Caption)
-
 		pages[page.Id] = page
 		pipe.HSet(ctx, fmt.Sprintf("catalog_pages:%d", page.Id), page)
 		pipe.SAdd(ctx, fmt.Sprintf("catalog_pages_by_parent:%d", page.ParentId), page.Id)
@@ -198,6 +200,7 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 		if page.Layout != "" {
 			pipe.SAdd(ctx, fmt.Sprintf("catalog_pages_by_layout:%s", page.Layout), page.Id)
 		}
+		count++
 	}
 
 	cmds, err := pipe.Exec(ctx)
@@ -210,6 +213,8 @@ func (data *Database) LoadCatalogPagesFromDB(ctx context.Context) (map[int]Catal
 			log.Printf("LoadCatalogPagesFromDB(): Got error when caching: %v", err)
 		}
 	}
+
+	log.Printf("LoadCatalogPagesFromDB(): Successfully loaded %d pages from Database", count)
 
 	return pages, nil
 }
