@@ -114,6 +114,23 @@ services:
       mariadb:
         condition: service_healthy
 
+  friends:
+    env_file: docker.env
+    container_name: friends
+    hostname: friends
+    build:
+      context: ./
+      dockerfile: ./friends/Dockerfile
+    restart: always
+    networks:
+      - clusterfuck_network
+    depends_on:
+      networking:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+
+
   guilds:
     env_file: docker.env
     container_name: guilds
@@ -292,6 +309,54 @@ services:
     container_name: permission-event-redis
     volumes:
         - 'permission_event_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  friends-redis:
+    image: 'redis:alpine'
+    hostname: friends-redis
+    container_name: friends-redis
+    volumes:
+        - 'friends_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  friends-outgoing-redis:
+    image: 'redis:alpine'
+    hostname: friends-outgoing-redis
+    container_name: friends-outgoing-redis
+    volumes:
+        - 'friends_outgoing_redis:/data'
+    networks:
+        - clusterfuck_network
+    healthcheck:
+        test:
+            - CMD
+            - redis-cli
+            - ping
+        retries: 3
+        timeout: 5s
+
+  friends-event-redis:
+    image: 'redis:alpine'
+    hostname: friends-event-redis
+    container_name: friends-event-redis
+    volumes:
+        - 'friends_event_redis:/data'
     networks:
         - clusterfuck_network
     healthcheck:
@@ -549,6 +614,12 @@ volumes:
   configuration_redis:
     driver: local
   configuration_event_redis:
+    driver: local
+  friends_redis:
+    driver: local
+  friends_outgoing_redis:
+    driver: local
+  friends_event_redis:
     driver: local
   guilds_redis:
     driver: local

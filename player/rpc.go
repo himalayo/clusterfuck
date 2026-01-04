@@ -27,6 +27,7 @@ func (u *UserData) toProto() *pb.UserData {
 		Motto:      u.Motto,
 		HomeRoom:   int32(u.HomeRoom),
 		Rank:       int32(u.Rank),
+		Gender:     u.Gender,
 	}
 }
 
@@ -52,6 +53,14 @@ func (s *server) GetUserHCData(ctx context.Context, ticket *pb.Ticket) (*pb.User
 		LastHcPayday:   int32(u.LastHCPayday),
 		HcGiftsClaimed: int32(u.HCGiftsClaimed),
 	}, nil
+}
+
+func userDataResultToProto(userData *UserData, err error) (*pb.UserData, error) {
+	return userData.toProto(), err
+}
+
+func (s *server) GetUserDataById(ctx context.Context, in *pb.UserId) (*pb.UserData, error) {
+	return userDataResultToProto(Data.loadUserDataById(ctx, int(in.GetId())))
 }
 
 func StartIncoming(addr string) {

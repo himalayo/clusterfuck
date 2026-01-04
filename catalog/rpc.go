@@ -71,7 +71,7 @@ func (s *server) GetCatalogPage(ctx context.Context, in *pb.CatalogPageRequest) 
 }
 
 func StartServer(data *Database) {
-	_, portString, _ := strings.Cut(os.Getenv("GUILDS_HOST"), ":")
+	_, portString, _ := strings.Cut(os.Getenv("CATALOG_HOST"), ":")
 	port, err := strconv.Atoi(portString)
 	if err != nil {
 		port = *grpc_port

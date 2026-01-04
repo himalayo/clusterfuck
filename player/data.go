@@ -23,6 +23,7 @@ type UserData struct {
 	Motto      string `redis:"motto"`
 	HomeRoom   int    `redis:"home_room"`
 	Rank       int    `redis:"rank"`
+	Gender     string `redis:"gender"`
 }
 
 type UserRespectData struct {
@@ -327,8 +328,8 @@ func (data *Database) loadUserData(sso string) *UserData {
 		}
 	}
 
-	row := data.db.QueryRow("SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank` FROM users WHERE auth_ticket = ?", sso)
-	if err := row.Scan(&curr_data.Id, &curr_data.Username, &curr_data.AuthTicket, &curr_data.Look, &curr_data.Motto, &curr_data.HomeRoom, &curr_data.Rank); err != nil {
+	row := data.db.QueryRow("SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank`, `gender` FROM users WHERE auth_ticket = ?", sso)
+	if err := row.Scan(&curr_data.Id, &curr_data.Username, &curr_data.AuthTicket, &curr_data.Look, &curr_data.Motto, &curr_data.HomeRoom, &curr_data.Rank, &curr_data.Gender); err != nil {
 		log.Printf("Database.loadUserData: could not load UserData: %s", err)
 		return nil
 	}
@@ -336,10 +337,37 @@ func (data *Database) loadUserData(sso string) *UserData {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		data.cache.HSet(ctx, fmt.Sprintf("user:%s", sso), curr_data)
+		data.cache.HSet(ctx, fmt.Sprintf("user_by_id:%d", curr_data.Id), curr_data)
 	}()
 
 	log.Printf("Loaded UserData: %s", curr_data.String())
 	return &curr_data
+}
+
+func (data *Database) loadUserDataById(ctx context.Context, userId int) (*UserData, error) {
+	log.Printf("Database.loadUserDataById: loading UserData: %d", userId)
+	var curr_data UserData
+	vals, err := data.cache.Exists(ctx, fmt.Sprintf("user_by_id:%d", userId)).Result()
+	if err != nil {
+		if vals != 0 {
+			err := data.cache.HGetAll(ctx, fmt.Sprintf("user_by_id:%d", userId)).Scan(&curr_data)
+			if err == nil {
+				log.Printf("%s", curr_data.String())
+				return &curr_data, nil
+			}
+		}
+	}
+	row := data.db.QueryRowContext(ctx, "SELECT `id`, `username`, `auth_ticket`, `look`, `motto`, `home_room`, `rank`, `gender` FROM users WHERE id = ?", userId)
+	if err := row.Scan(&curr_data.Id, &curr_data.Username, &curr_data.AuthTicket, &curr_data.Look, &curr_data.Motto, &curr_data.HomeRoom, &curr_data.Rank, &curr_data.Gender); err != nil {
+		log.Printf("Database.loadUserData: could not load UserData: %s", err)
+		return nil, err
+	}
+	go func() {
+		data.cache.HSet(ctx, fmt.Sprintf("user:%s", curr_data.AuthTicket), curr_data)
+		data.cache.HSet(ctx, fmt.Sprintf("user_by_id:%d", userId), curr_data)
+	}()
+
+	return &curr_data, nil
 }
 
 func (data *Database) loadUserEffects(id int) []UserEffect {

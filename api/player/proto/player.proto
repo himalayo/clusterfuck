@@ -8,6 +8,11 @@ service Player {
 	rpc LoginPlayer (Ticket) returns (LoginStatus) {}
 	rpc GetUserData (Ticket) returns (UserData) {}
 	rpc GetUserHCData (Ticket) returns (UserHCData) {}
+	rpc GetUserDataById (UserId) returns (UserData) {}
+}
+
+message UserId {
+	int32 id = 1;
 }
 
 message Ticket {
@@ -26,6 +31,7 @@ message UserData {
 	string motto = 5;
 	int32 home_room = 6;
 	int32 rank = 7;
+	string gender = 8;
 }
 
 message UserHCData {

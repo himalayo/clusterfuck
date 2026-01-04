@@ -56,6 +56,12 @@ func (n *PlayerClient) GetUserData(sso string) *pb.UserData {
 	return n.sendUserDataRequest(&pb.Ticket{Sso: sso})
 }
 
+func (n *PlayerClient) GetUserDataById(ctx context.Context, userId int) (*pb.UserData, error) {
+	return n.client.GetUserDataById(ctx, &pb.UserId{
+		Id: int32(userId),
+	})
+}
+
 func (n *PlayerClient) GetUserHCData(ctx context.Context, sso string) (*pb.UserHCData, error) {
 	return n.client.GetUserHCData(ctx, &pb.Ticket{
 		Sso: sso,

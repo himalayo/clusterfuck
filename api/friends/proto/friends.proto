@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package friends;
+
+option go_package = "github.com/himalayo/clusterfuck/api/friends/proto";
+
+service Friends {
+    rpc GetFriendList (GetFriendListRequest) returns (FriendList) {}
+    rpc GetFriendById (GetFriendByIdRequest) returns (Friend) {}
+}
+
+enum Gender {
+    M = 0;
+    F = 1;
+}
+
+message GetFriendByIdRequest {
+    int32 friend_id = 1;
+}
+
+message GetFriendListRequest {
+    string session = 1;
+}
+
+message FriendList {
+    repeated Friend elements = 1;
+}
+
+message Friend {
+    int32 id = 1;
+    string username = 2;
+    Gender gender = 3;
+    int32 online = 4;
+    string look = 5;
+    string motto = 6;
+    int32 relation = 7;
+    int32 category_id = 8;
+    int32 user_id = 10;
+}
