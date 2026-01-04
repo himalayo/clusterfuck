@@ -19,6 +19,10 @@ func (x *MessengerInitComposerData) Serialize() []byte {
 	return serializeValues(normalMessengerInitComposerStart, SerializeAll(x.MessengerCategories))
 }
 
+func FriendsComposer(TotalPages int, PageIndex int, Friends []*Friend) []byte {
+	return compose(3130, TotalPages, PageIndex, SerializeAll(Friends))
+}
+
 func MessengerInitComposer(composerData *MessengerInitComposerData) []byte {
 	return compose(1605, composerData)
 }

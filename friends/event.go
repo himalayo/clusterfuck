@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
+	"slices"
 	"sync"
 
 	netpb "github.com/himalayo/clusterfuck/api/networking/proto"
@@ -19,7 +21,10 @@ func cachePermissionData(ctx context.Context, evt *plpb.LoginEvent) {
 		}
 		pipe := data.rdb.Pipeline()
 		for permissionKey, permission := range rank.Permissions {
-			pipe.Set(ctx, fmt.Sprintf("user_permission:%s:%s", evt.UserData.AuthTicket, permissionKey), int(permission.GetSetting()), 0)
+			key := fmt.Sprintf("user_permission:%s:%s", evt.UserData.AuthTicket, permissionKey)
+			log.Printf("Setting %v", key)
+
+			pipe.Set(ctx, key, int(permission.GetSetting()), 0)
 		}
 		cmds, err := pipe.Exec(ctx)
 		if err != nil {
@@ -47,45 +52,71 @@ func setUserId(ctx context.Context, evt *plpb.LoginEvent) {
 }
 
 func sendMessengerInitComposer(ctx context.Context, evt *netpb.PacketEvent) {
-	go func() {
-		var wg sync.WaitGroup
-		var infiniteFriends bool
-		var categories []*MessengerCategory = nil
-		wg.Go(
-			func() {
-				infiniteFriendsPointer, err := data.GetPermission(ctx, evt.Packet.ClientId, "acc_infinite_friends")
-				if err != nil {
-					log.Printf("sendMessengerInitComposer(): Got error while fetching infinite friends permission: %v", err)
-				}
-				if infiniteFriendsPointer == nil {
-					infiniteFriends = false
-					return
-				}
-				infiniteFriends = *infiniteFriendsPointer
-			},
-		)
-		wg.Go(
-			func() {
-				cats, err := data.GetMessengerCategories(ctx, evt.Packet.ClientId)
-				if err != nil {
-					log.Printf("sendMessengerInitComposer(): Got error while fetching messenger categories: %v", err)
-					return
-				}
-				categories = cats
-			},
-		)
-		wg.Wait()
-		packet := MessengerInitComposer(&MessengerInitComposerData{
-			InfiniteFriends:     infiniteFriends,
-			MessengerCategories: categories,
-		})
-		log.Printf("sendMessengerInitComposer(): Sending to %s: [% x]", evt.Packet.ClientId, packet)
+	var wg sync.WaitGroup
+	var infiniteFriends bool
+	var categories []*MessengerCategory = nil
+	wg.Go(
+		func() {
+			infiniteFriendsPointer, err := data.GetPermission(ctx, evt.Packet.ClientId, "acc_infinite_friends")
+			if err != nil {
+				log.Printf("sendMessengerInitComposer(): Got error while fetching infinite friends permission: %v", err)
+			}
+			if infiniteFriendsPointer == nil {
+				infiniteFriends = false
+				return
+			}
+			infiniteFriends = *infiniteFriendsPointer
+		},
+	)
+	wg.Go(
+		func() {
+			cats, err := data.GetMessengerCategories(ctx, evt.Packet.ClientId)
+			if err != nil {
+				log.Printf("sendMessengerInitComposer(): Got error while fetching messenger categories: %v", err)
+				return
+			}
+			categories = cats
+		},
+	)
+	wg.Wait()
+	packet := MessengerInitComposer(&MessengerInitComposerData{
+		InfiniteFriends:     infiniteFriends,
+		MessengerCategories: categories,
+	})
+	log.Printf("sendMessengerInitComposer(): Sending to %s: [% x]", evt.Packet.ClientId, packet)
+	NetPub.Send(ctx, evt.Packet.ClientId, packet)
+}
+
+func sendFriendsComposer(ctx context.Context, evt *netpb.PacketEvent) {
+	friends, err := data.GetFriendsForUser(ctx, evt.Packet.ClientId)
+	if err != nil {
+		log.Printf("sendFriendsComposers(): Got error while fetching users: %v", err)
+		return
+	}
+	totalPages := int(math.Ceil(float64(len(friends)) / 750.0))
+	pageIndex := 0
+	for page := range slices.Chunk(friends, 750) {
+		packet := FriendsComposer(totalPages, pageIndex, page)
+		log.Printf("sendFriendsComposers(): Sending: %v", packet)
 		NetPub.Send(ctx, evt.Packet.ClientId, packet)
+		pageIndex++
+	}
+	if pageIndex == 0 {
+		packet := FriendsComposer(totalPages, pageIndex, friends)
+		log.Printf("sendFriendsComposers(): Sending: %v", packet)
+		NetPub.Send(ctx, evt.Packet.ClientId, packet)
+	}
+}
+
+func sendInitialComposers(ctx context.Context, evt *netpb.PacketEvent) {
+	go func() {
+		sendMessengerInitComposer(ctx, evt)
+		sendFriendsComposer(ctx, evt)
 	}()
 }
 
 func RegisterPacketHandlers() {
-	Net.RegisterRedisHandler(2781, sendMessengerInitComposer)
+	Net.RegisterRedisHandler(2781, sendInitialComposers)
 }
 
 func RegisterLoginHandlers() {

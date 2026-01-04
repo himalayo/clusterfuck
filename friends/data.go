@@ -76,6 +76,25 @@ type Friend struct {
 	Relation   int    `redis:"relation"`
 	CategoryId int    `redis:"category_id"`
 	UserId     int    `redis:"user_id"`
+	InRoom     bool   `redis:"in_room"`
+}
+
+func (f *Friend) genderToInt() int {
+	if f.Gender == "M" {
+		return 0
+	}
+	return 1
+}
+
+func (f *Friend) getLookIfOnline() string {
+	if f.Online == 1 {
+		return f.Look
+	}
+	return ""
+}
+
+func (f *Friend) Serialize() []byte {
+	return serializeValues(f.Id, f.Username, f.genderToInt(), f.Online == 1, f.InRoom, f.getLookIfOnline(), f.CategoryId, f.Motto, "", "", false, false, false, f.Relation)
 }
 
 func (data *Database) getUserId(ctx context.Context, sso string) (*int, error) {
@@ -140,7 +159,7 @@ func (data *Database) GetFriendById(ctx context.Context, friendshipId int) (*Fri
 		}
 	}
 
-	row := data.db.QueryRowContext(ctx, "SELECT id, user_one, relation, category FROM messenger_friendships WHERE id = ?", friendshipId)
+	row := data.db.QueryRowContext(ctx, "SELECT id, user_one_id, relation, category FROM messenger_friendships WHERE id = ?", friendshipId)
 	if err := row.Scan(&friend.Id, &friend.UserId, &friend.Relation, &friend.CategoryId); err != nil {
 		return nil, err
 	}
@@ -203,7 +222,7 @@ func (data *Database) GetFriendsForUser(ctx context.Context, sso string) ([]*Fri
 	}
 
 	friends := make([]*Friend, 0)
-	rows, err := data.db.QueryContext(ctx, "SELECT id, user_one, relation, category FROM messenger_friendships WHERE user_two = ?", *user_id)
+	rows, err := data.db.QueryContext(ctx, "SELECT id, user_one_id, relation, category FROM messenger_friendships WHERE user_two_id = ?", *user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -225,19 +244,16 @@ func (data *Database) GetFriendsForUser(ctx context.Context, sso string) ([]*Fri
 			friend.Gender = friendData.Gender
 			friend.Look = friendData.Look
 			friend.Motto = friendData.Motto
-
 		})
 	}
 	wg.Wait()
 	go func() {
 		pipe := data.rdb.Pipeline()
 		pipe.Del(ctx, friend_id_list)
-		friend_ids := make([]int, len(friends))
-		for i, friend := range friends {
+		for _, friend := range friends {
 			pipe.HSet(ctx, fmt.Sprintf("friend:%d", friend.Id), *friend)
-			friend_ids[i] = friend.Id
+			pipe.SAdd(ctx, friend_id_list, friend.Id)
 		}
-		pipe.SAdd(ctx, friend_id_list, friend_id_list)
 		cmds, err := pipe.Exec(ctx)
 		if err != nil {
 			log.Printf("Got error executing friends cache pipeline: %v", err)
