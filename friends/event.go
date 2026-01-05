@@ -115,8 +115,21 @@ func sendInitialComposers(ctx context.Context, evt *netpb.PacketEvent) {
 	}()
 }
 
+func sendLoadFriendRequestsComposer(ctx context.Context, evt *netpb.PacketEvent) {
+	go func() {
+		requests, err := data.GetFriendRequestsForUser(ctx, evt.Packet.ClientId)
+		if err != nil {
+			log.Printf("sendFriendRequests(): Got error: %v", err)
+			return
+		}
+
+		NetPub.Send(ctx, evt.Packet.ClientId, LoadFriendRequestsComposer(requests))
+	}()
+}
+
 func RegisterPacketHandlers() {
 	Net.RegisterRedisHandler(2781, sendInitialComposers)
+	Net.RegisterRedisHandler(2448, sendLoadFriendRequestsComposer)
 }
 
 func RegisterLoginHandlers() {

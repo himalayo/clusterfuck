@@ -69,7 +69,7 @@ func main() {
 				Password: events_cfg.Password,
 				DB:       events_cfg.DB,
 			},
-		}, []int{2781}, NetPub.RedisConfig)
+		}, []int{2781, 2448}, NetPub.RedisConfig)
 		if err != nil {
 			log.Printf("Got error while registering service: %v", err)
 		}

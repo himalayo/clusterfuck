@@ -222,29 +222,18 @@ func (data *Database) GetFriendsForUser(ctx context.Context, sso string) ([]*Fri
 	}
 
 	friends := make([]*Friend, 0)
-	rows, err := data.db.QueryContext(ctx, "SELECT id, user_one_id, relation, category FROM messenger_friendships WHERE user_two_id = ?", *user_id)
+	rows, err := data.db.QueryContext(ctx, "SELECT messenger_friendships.id, users.username, users.gender, users.look, users.motto, user_one_id, relation, category FROM messenger_friendships INNER JOIN users ON messenger_friendships.user_one_id = users.id WHERE user_two_id = ?", *user_id)
 	if err != nil {
 		return nil, err
 	}
 	var wg sync.WaitGroup
 	for rows.Next() {
 		var friend Friend
-		if err := rows.Scan(&friend.Id, &friend.UserId, &friend.Relation, &friend.CategoryId); err != nil {
+		if err := rows.Scan(&friend.Id, &friend.Username, &friend.Gender, &friend.Look, &friend.Motto, &friend.UserId, &friend.Relation, &friend.CategoryId); err != nil {
 			log.Printf("GetFriendsForUser(): Got error: %v", err)
 			continue
 		}
 		friends = append(friends, &friend)
-		wg.Go(func() {
-			friendData, err := Player.GetUserDataById(ctx, friend.UserId)
-			if err != nil {
-				log.Printf("GetFriendsForUser(): Got error while fetching user data: %v", err)
-				return
-			}
-			friend.Username = friendData.Username
-			friend.Gender = friendData.Gender
-			friend.Look = friendData.Look
-			friend.Motto = friendData.Motto
-		})
 	}
 	wg.Wait()
 	go func() {
@@ -364,4 +353,110 @@ func (data *Database) GetMessengerCategories(ctx context.Context, sso string) ([
 	}
 
 	return categories, nil
+}
+
+type FriendRequest struct {
+	Id         int    `redis:"id"`
+	Username   string `redis:"username"`
+	Look       string `redis:"look"`
+	Serialized string `redis:"serialized"`
+}
+
+func (req *FriendRequest) toBytes() []byte {
+	return serializeValues(req.Id, req.Username, req.Look)
+}
+
+func (req *FriendRequest) Serialize() []byte {
+	if req.Serialized == "" {
+		req.Serialized = string(req.toBytes())
+	}
+	return []byte(req.Serialized)
+}
+
+func (data *Database) getCachedFriendRequestsWithKey(ctx context.Context, key string) ([]*FriendRequest, error) {
+	var requests []*FriendRequest = nil
+	var cursor uint64 = 0
+	var err error
+	for {
+		var keysFromScan []string
+		keysFromScan, cursor, err = data.rdb.SScan(ctx, key, cursor, "*", 100).Result()
+		if err != nil {
+			log.Printf("getCachedFriendRequestsWithKey(): Got error while executing scanning for requests: %v", err)
+			break
+		}
+
+		pipe := data.rdb.Pipeline()
+		for _, key := range keysFromScan {
+			pipe.HGetAll(ctx, key)
+		}
+		cmds, err := pipe.Exec(ctx)
+		if err != nil {
+			log.Printf("getCachedFriendRequestsWithKey(): Got error while executing pipeline for friend requests: %v", err)
+			continue
+		}
+
+		for _, c := range cmds {
+			var request FriendRequest
+			if err := c.(*redis.MapStringStringCmd).Scan(&request); err != nil {
+				log.Printf("getCachedFriendRequestsWithKey(): Got error while scanning cached friend requests: %v", err)
+				continue
+			}
+			requests = append(requests, &request)
+		}
+
+		if cursor == 0 {
+			break
+		}
+	}
+	return requests, nil
+}
+
+func (data *Database) GetFriendRequestsForUser(ctx context.Context, sso string) ([]*FriendRequest, error) {
+	user_id, err := data.getUserId(ctx, sso)
+	if err != nil {
+		return nil, err
+	}
+
+	requests := make([]*FriendRequest, 0)
+
+	request_id_list := fmt.Sprintf("requests_by_user_id:%d", *user_id)
+	exists, err := data.rdb.Exists(ctx, request_id_list).Result()
+	if err == nil && exists != 0 {
+		requests, err := data.getCachedFriendRequestsWithKey(ctx, request_id_list)
+		if err == nil && requests != nil {
+			return requests, nil
+		}
+	}
+
+	rows, err := data.db.QueryContext(ctx, "SELECT users.id, users.username, users.look FROM messenger_friendrequests INNER JOIN users ON user_from_id = users.id WHERE user_to_id = ?", user_id)
+	if err != nil {
+		log.Printf("GetFriendRequestsForUser(): Got error while fetching data from database: %v", err)
+		return nil, err
+	}
+
+	pipe := data.rdb.Pipeline()
+	for rows.Next() {
+		var req FriendRequest
+		if err := rows.Scan(&req.Id, &req.Username, &req.Look); err != nil {
+			log.Printf("GetFriendRequestsForUser(): Got error while scanning data from database: %v", err)
+			continue
+		}
+		req.Serialize()
+		requests = append(requests, &req)
+		pipe.HSet(ctx, fmt.Sprintf("requests:%d", req.Id), req)
+		pipe.SAdd(ctx, request_id_list, req.Id)
+	}
+	cmds, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Printf("GetFriendRequestsForUser(): Got error while executing results cache pipeline: %v", err)
+		return requests, nil
+	}
+
+	for _, c := range cmds {
+		if err := c.Err(); err != nil {
+			log.Printf("GetFriendRequestsForUser(): Got error while caching categories: %v", err)
+		}
+	}
+
+	return requests, nil
 }

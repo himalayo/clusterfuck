@@ -26,3 +26,7 @@ func FriendsComposer(TotalPages int, PageIndex int, Friends []*Friend) []byte {
 func MessengerInitComposer(composerData *MessengerInitComposerData) []byte {
 	return compose(1605, composerData)
 }
+
+func LoadFriendRequestsComposer(requests []*FriendRequest) []byte {
+	return compose(280, len(requests), SerializeAll(requests))
+}
